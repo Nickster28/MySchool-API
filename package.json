@@ -1,11 +1,11 @@
 {
-  "name": "MyMaret-Server",
+  "name": "MyMaret-API",
   "version": "0.0.1",
-  "description": "Webapp server and API for the MyMaret app",
+  "description": "API for the MyMaret app",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Nickster28/MyMaret-Server"
+    "url": "https://github.com/Nickster28/MyMaret-API"
   },
   "license": "MIT",
   "dependencies": {
