@@ -1,0 +1,32 @@
+{
+  "name": "MyMaret-Server",
+  "version": "0.0.1",
+  "description": "Webapp server and API for the MyMaret app",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nickster28/MyMaret-Server"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "~4.11.x",
+    "parse": "~1.8.0",
+    "parse-server": "~2.2.12"
+  },
+  "scripts": {
+    "start": "npm run start:prod",
+    "start:prod": "node runLocal.js prod",
+    "start:staging": "node runLocal.js staging",
+    "debug:prod": "node runLocal.js prod debugger",
+    "debug:staging": "node runLocal.js staging debugger",
+    "test:prod": "node runLocal.js prod instant-reload",
+    "test:staging": "node runLocal.js staging instant-reload"
+  },
+  "engines": {
+    "node": ">=4.3"
+  },
+  "devDependencies": {
+    "node-inspector": "^0.12.8",
+    "nodemon": "^1.9.2"
+  }
+}
