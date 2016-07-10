@@ -1,2 +1,2 @@
-# MyMaret-Server
+# MyMaret-API
 API for the MyMaret app.
