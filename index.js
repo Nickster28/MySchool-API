@@ -24,19 +24,6 @@ var api = new ParseServer({
 
 var app = express();
 
-// If running on heroku, auto-redirect to https.
-// Thanks to http://jaketrent.com/post/https-redirect-node-heroku/
-if (app.get('env') == 'heroku') {
-    app.enable('trust proxy');
-    app.use(function(req, res, next) {
-        if (req.protocol != 'https') {
-            res.redirect("https://" + req.hostname + req.originalUrl);
-        } else {
-            next();
-        }
-    });
-}
-
 // Serve static assets from the /public folder
 app.use('/public', express.static(path.join(__dirname, '/public')));
 
