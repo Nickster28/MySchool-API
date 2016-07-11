@@ -8,21 +8,34 @@ var path = require('path');
 var databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
 
 if (!databaseUri) {
-  console.log('DATABASE_URI not specified, falling back to localhost.');
+  	console.log('DATABASE_URI not specified, falling back to localhost.');
 }
 
 var api = new ParseServer({
-  databaseURI: databaseUri || 'mongodb://localhost:27017/dev',
-  cloud: process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
-  appId: process.env.APP_ID || 'myAppId',
-  masterKey: process.env.MASTER_KEY || '', //Add your master key here. Keep it secret!
-  serverURL: process.env.SERVER_URL || 'http://localhost:1337/parse',  // Don't forget to change to https if needed
+  	databaseURI: databaseUri || 'mongodb://localhost:27017/dev',
+  	cloud: process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
+  	appId: process.env.APP_ID || 'myAppId',
+  	masterKey: process.env.MASTER_KEY || '', //Add your master key here. Keep it secret!
+  	serverURL: process.env.SERVER_URL || 'http://localhost:1337/parse',  // Don't forget to change to https if needed
 });
 // Client-keys like the javascript key or the .NET key are not necessary with parse-server
 // If you wish you require them, you can set them as options in the initialization above:
 // javascriptKey, restAPIKey, dotNetKey, clientKey
 
 var app = express();
+
+// If running on heroku, auto-redirect to https.
+// Thanks to http://jaketrent.com/post/https-redirect-node-heroku/
+if (app.get('env') == 'heroku') {
+    app.enable('trust proxy');
+    app.use(function(req, res, next) {
+        if (req.protocol != 'https') {
+            res.redirect("https://" + req.hostname + req.originalUrl);
+        } else {
+            next();
+        }
+    });
+}
 
 // Serve static assets from the /public folder
 app.use('/public', express.static(path.join(__dirname, '/public')));
@@ -33,13 +46,13 @@ app.use(mountPath, api);
 
 // Parse Server plays nicely with the rest of your web routes
 app.get('/', function(req, res) {
-  res.status(200).send('I dream of being a website.  Please star the parse-server repo on GitHub!');
+  	res.status(200).send('I dream of being a website.  Please star the parse-server repo on GitHub!');
 });
 
 
 var port = process.env.PORT || 1337;
 var httpServer = require('http').createServer(app);
 httpServer.listen(port, function() {
-    console.log('MyMaret-Server running on port ' + port + '.');
+  	console.log('MyMaret-Server running on port ' + port + '.');
 });
 
