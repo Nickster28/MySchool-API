@@ -24,6 +24,11 @@ var api = new ParseServer({
 
 var app = express();
 
+app.use(function(mountPath, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    return next();
+});
+
 // Serve static assets from the /public folder
 app.use('/public', express.static(path.join(__dirname, '/public')));
 
