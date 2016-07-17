@@ -14,7 +14,7 @@
     "parse-server": "~2.2.15"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
     "start:prod": "node runLocal.js prod",
     "start:staging": "node runLocal.js staging",
     "debug:prod": "node runLocal.js prod debugger",

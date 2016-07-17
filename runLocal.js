@@ -51,6 +51,6 @@ if (!argsString) {
 	if (!command) {
 		console.error("Error: invalid server option");
 	} else {
-		execSync(argsString + " " + command + " " + "index.js", {stdio:[0,1,2]});
+		execSync(argsString + " " + command + " " + "server.js", {stdio:[0,1,2]});
 	}
 }
