@@ -1,5 +1,5 @@
 # MyMaret-API
-API for the MyMaret app.  To start, run
+API for the MyMaret app.  To start, run `npm install` to install all necessary packages, and then run
 
 `npm start`
 
@@ -39,7 +39,7 @@ runLocal.js takes care of all of the required environment variables for you usin
 - `npm run test:staging` - same as `npm run start:staging:`, but runs with `nodemon` instead of `node` to live-reload the server after any file changes
 
 ## `runLocal.js` Details
-The `runLocal.js` script takes 1 or two arguments:
+If you're interested in the JS code that underlies the above npm scripts, the `runLocal.js` script takes 1 or two arguments:
 
 `runLocal.js SERVER_NAME DEBUG_OPTION`
 
