@@ -10,7 +10,10 @@ to an object containing "appId", "masterKey", and "mongoUri" fields.
 - (OPTIONAL) DEBUG_OPTION - either "debugger" or "instant-reload".  "debugger"
 runs using node-debug instead of node, which launches a debugger window.
 "instant-reload" runs using nodemon instead of node, which auto-relaunches the
-server whenever a  file changes.
+server whenever a file changes.
+
+Uses the SERVER_NAME field to run the appropriate launch command with the
+right APP_ID, MASTER_KEY and MONGODB_URI environment variables.
 ----------------------
 */
 
