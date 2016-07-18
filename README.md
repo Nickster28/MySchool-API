@@ -41,7 +41,7 @@ runLocal.js takes care of all of the required environment variables for you usin
 ## `runLocal.js` Details
 If you're interested in the JS code that underlies the above npm scripts, the `runLocal.js` script takes 1 or two arguments:
 
-`runLocal.js SERVER_NAME DEBUG_OPTION`
+`node runLocal.js SERVER_NAME DEBUG_OPTION`
 
 - **(REQUIRED) SERVER_NAME** - must match a key in `serverInfo.json`, which must map to an object containing "appId", "masterKey", and "mongoUri" fields (see `serverInfo.json` format above).
 - **(OPTIONAL) DEBUG_OPTION** - either "debugger" or "instant-reload".  "debugger" runs using `node-debug` instead of `node`, which launches a debugger window.  "instant-reload" runs using `nodemon` instead of `node`, which auto-relaunches the server whenever a file changes.
