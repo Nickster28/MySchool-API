@@ -45,3 +45,6 @@ If you're interested in the JS code that underlies the above npm scripts, the `r
 
 - **(REQUIRED) SERVER_NAME** - must match a key in `serverInfo.json`, which must map to an object containing "appID", "masterKey", and "mongoUri" fields (see `serverInfo.json` format above).
 - **(OPTIONAL) DEBUG_OPTION** - either "debugger" or "instant-reload".  "debugger" runs using `node-debug` instead of `node`, which launches a debugger window.  "instant-reload" runs using `nodemon` instead of `node`, which auto-relaunches the server whenever a file changes.
+
+## Additional Tidbits
+There is a `commitAndPushAll.sh` script included, which if run, will commit and push the entered file changes to both staging and master.  It will ask for a commit message on launch.  Note that you will need to add any untracked files before running this script.
