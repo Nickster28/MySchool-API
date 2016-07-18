@@ -29,6 +29,6 @@ app.get('/', function(req, res) {
 var port = process.env.PORT || 1337;
 var httpServer = require('http').createServer(app);
 httpServer.listen(port, function() {
-  	console.log('MyMaret-API running on port ' + port + '.');
+  	console.log('API running on port ' + port + '.');
 });
 
