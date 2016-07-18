@@ -18,12 +18,12 @@ Optionally, you can run additional API server configurations with different debu
 ```json
 {
 	"staging": {
-		"appID": "YOUR_STAGING_APP_ID_HERE",
+		"appId": "YOUR_STAGING_APP_ID_HERE",
 		"masterKey": "YOUR_STAGING_MASTER_KEY_HERE",
 		"mongoUri": "YOUR_STAGING_MONGODB_URL_HERE"
 	},
 	"prod": {
-		"appID": "YOUR_PRODUCTION_APP_ID_HERE",
+		"appId": "YOUR_PRODUCTION_APP_ID_HERE",
 		"masterKey": "YOUR_PRODUCTION_MASTER_KEY_HERE",
 		"mongoUri": "YOUR_PRODUCTION_MONGODB_URL_HERE"
 	}
@@ -43,7 +43,7 @@ If you're interested in the JS code that underlies the above npm scripts, the `r
 
 `runLocal.js SERVER_NAME DEBUG_OPTION`
 
-- **(REQUIRED) SERVER_NAME** - must match a key in `serverInfo.json`, which must map to an object containing "appID", "masterKey", and "mongoUri" fields (see `serverInfo.json` format above).
+- **(REQUIRED) SERVER_NAME** - must match a key in `serverInfo.json`, which must map to an object containing "appId", "masterKey", and "mongoUri" fields (see `serverInfo.json` format above).
 - **(OPTIONAL) DEBUG_OPTION** - either "debugger" or "instant-reload".  "debugger" runs using `node-debug` instead of `node`, which launches a debugger window.  "instant-reload" runs using `nodemon` instead of `node`, which auto-relaunches the server whenever a file changes.
 
 ## Additional Tidbits
