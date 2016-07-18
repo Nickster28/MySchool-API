@@ -15,7 +15,7 @@ API for the MyMaret app.  To start, run
 ## Testing and Debugging
 Optionally, you can run additional API server configurations with different debugging options.  These configurations are all run using the runLocal.js script, which requires a `serverInfo.json` file to be in the same directory, with the following structure:
 
-`
+```json
 {
 	"staging": {
 		"appID": "YOUR_STAGING_APP_ID_HERE",
@@ -28,7 +28,7 @@ Optionally, you can run additional API server configurations with different debu
 		"mongoUri": "YOUR_PRODUCTION_MONGODB_URL_HERE"
 	}
 }
-`
+```
 
 runLocal.js takes care of all of the required environment variables for you using `serverInfo.json`.  It also allows you to run a MyMaret-API instance locally, using different debug options, while connecting to the same remote database that the hosted staging and prod instances connect to.  There are premade npm scripts that allow you to run these various configurations:
 - `npm run start:prod` - runs locally with the prod APP_ID and MASTER_KEY, and connects to the hosted prod database
