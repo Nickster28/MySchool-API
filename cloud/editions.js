@@ -27,3 +27,22 @@ Parse.Cloud.define("IsValidEditionName", function(req, res) {
 		});
 	}
 });
+
+/*
+ * CLOUD FUNCTION: BEFORESAVE EDITION
+ * -----------------------------------
+ * Verifies that edition names are unique before saving.
+ * -----------------------------------
+ */
+Parse.Cloud.beforeSave("Edition", function(req, res) {
+	Parse.Cloud.run("IsValidEditionName",
+		{name: req.object.get("editionName")}).then(function(isValidName) {
+		if (isValidName) {
+			res.success();
+		} else {
+			res.error("Edition name is not unique");
+		}
+	}, function(error) {
+		res.error(error);
+	});
+});
