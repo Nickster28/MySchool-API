@@ -1,9 +1,14 @@
 /*
  * FUNCTION: isValidEditionName
  * -----------------------------
- * Returns a promise passing back whether the given edition name is valid
- * (unique, non-empty).  Also takes an optional sessionToken to use to
- * validate the query.
+ * Parameters:
+ *		name - the edition name to validate
+ *		sessionToken (optional) - the sessionToken of the user to use when
+ *								making Parse server calls.
+ *
+ * Returns: a promise passing back whether the given edition name is valid
+ * 			(unique, non-empty).  Also takes an optional sessionToken to use to
+ * 			validate the query.
  * -----------------------------
  */
 function isValidEditionName(name, sessionToken) {
