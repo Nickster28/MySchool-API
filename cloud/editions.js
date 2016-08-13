@@ -1,4 +1,27 @@
 /*
+ * FUNCTION: isValidEditionName
+ * -----------------------------
+ * Returns a promise passing back whether the given edition name is valid
+ * (unique, non-empty).  Also takes an optional sessionToken to use to
+ * validate the query.
+ * -----------------------------
+ */
+function isValidEditionName(name, sessionToken) {
+	if (name === undefined || name === null) {
+		return Parse.Promise.error("No name provided");
+	} else if (name === "") {
+		return Parse.Promise.as(false);
+	} else {
+		var queryOptions = sessionToken ? {sessionToken: sessionToken} : {};
+		var editionsQuery = new Parse.Query(Parse.Object.extend("Edition"));
+		editionsQuery.equalTo("editionName", name);
+		return editionsQuery.first(queryOptions).then(function(edition) {
+			return (edition ? false : true);
+		});
+	}
+});
+
+/*
  * CLOUD FUNCTION: IsValidEditionName
  * ------------------------------------
  * Request Parameters:
@@ -12,21 +35,16 @@
 Parse.Cloud.define("IsValidEditionName", function(req, res) {
 	if (!req.user) {
 		res.error("Request must be made by logged-in user");
-	} else if (req.params.name === undefined || req.params.name === null) {
-		res.error("No name provided");
-	} else if (req.params.name === "") {
-		res.success(false);
 	} else {
-		var token = req.user.getSessionToken();
-		var editionsQuery = new Parse.Query("Edition");
-		editionsQuery.equalTo("editionName", req.params.name);
-		editionsQuery.first({ sessionToken: token }).then(function(edition) {
-			res.success(edition ? false : true);
+		var name = req.params.name;
+		return isValidEditionName(name, req.user.getSessionToken())
+		.then(function(isValid) {
+			res.success(isValid);
 		}, function(error) {
 			res.error(error);
 		});
 	}
-});
+}
 
 /*
  * CLOUD FUNCTION: BEFORESAVE EDITION
@@ -35,9 +53,9 @@ Parse.Cloud.define("IsValidEditionName", function(req, res) {
  * -----------------------------------
  */
 Parse.Cloud.beforeSave("Edition", function(req, res) {
-	Parse.Cloud.run("IsValidEditionName",
-		{name: req.object.get("editionName")}).then(function(isValidName) {
-		if (isValidName) {
+	var name = req.object.get("editionName");
+	return isValidEditionName(name).then(function(isValid) {
+		if (isValid) {
 			res.success();
 		} else {
 			res.error("Edition name is not unique");
