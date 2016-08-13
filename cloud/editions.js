@@ -24,7 +24,7 @@ function isValidEditionName(name, sessionToken) {
 			return (edition ? false : true);
 		});
 	}
-});
+}
 
 /*
  * CLOUD FUNCTION: IsValidEditionName
@@ -49,7 +49,7 @@ Parse.Cloud.define("IsValidEditionName", function(req, res) {
 			res.error(error);
 		});
 	}
-}
+});
 
 /*
  * CLOUD FUNCTION: BEFORESAVE EDITION
