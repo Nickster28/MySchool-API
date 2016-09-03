@@ -52,25 +52,87 @@ Parse.Cloud.define("IsValidNewspaperEditionName", function(req, res) {
 	}
 });
 
+// TODO
+function publishEdition(edition) {
+	console.log("Publishing edition...");
+	return Parse.Promise.as();
+}
+
+/*
+ * FUNCTION: setDefaultSectionsForEdition
+ * ------------------------------------------
+ * Parameters:
+ *		edition - the edition to set default sections for
+ *
+ * Returns: a promise that creates newspaper sections for the given edition
+ * 			(based on the names in DEFAULT_NEWSPAPER_SECTIONS in the server
+ *			config), saves them, and sets the edition's |sections| field equal
+ *			to them.
+ * ------------------------------------------
+ */
+function setDefaultSectionsForEdition(edition) {
+	return Parse.Config.get().then(function(config) {
+		var promises = [];
+		var sections = config.get("DEFAULT_NEWSPAPER_SECTIONS")
+			.map(function(sectionName) {
+				var section = new Parse.Object("NewspaperSection");
+				section.set("sectionName", sectionName);
+				promises.push(section.save());
+				return section;
+		});
+
+		return Parse.Promise.when(promises).then(function() {
+			return sections;
+		});
+	}).then(function(sections) {
+		edition.set("sections", sections);
+	});
+}
+
 /*
  * CLOUD FUNCTION: BeforeSave NewspaperEdition
  * -----------------------------------
- * Verifies that edition names are unique before saving a new object.
+ * For existing objects:
+ * 	- checks if it was just changed to "published", and if it was, notifies all
+ * 		users.
+ *
+ * For new objects:
+ *	- verifies the edition name
+ *	- fills in the defualt isPublished status = false
+ *	- fills in the default sections array to new NewspaperSections
  * -----------------------------------
  */
 Parse.Cloud.beforeSave("NewspaperEdition", function(req, res) {
-	if (req.object.isNew()) {
+	// If it isn't new, check the database copy to see if it's being published
+	if (!req.object.isNew() && req.object.dirtyKeys().includes("isPublished")) {
+		var query = new Parse.Query("NewspaperEdition");
+		return query.get(req.object.id).then(function(edition) {
+			if (edition.get("isPublished") != req.object.get("isPublished") &&
+				req.object.get("isPublished")) {
+				return publishEdition(edition);
+			}
+		}).then(function() {
+			res.success();
+		}, function(error) {
+			res.error(error);
+		});
+	} else if (req.object.isNew()) {
+		// 1) Validate the edition name and
+		// 2) add the default sections to the edition
 		var name = req.object.get("editionName");
 		return isValidNewspaperEditionName(name).then(function(isValid) {
-			if (isValid) {
-				res.success();
-			} else {
+			if (!isValid) {
 				res.error("Newspaper Edition name is not unique");
+			} else {
+				// Fill in defaults
+				req.object.set("isPublished", false);
+				return setDefaultSectionsForEdition(req.object)
+					.then(function() {
+						res.success();
+				});
 			}
 		}, function(error) {
 			res.error(error);
 		});
-	} else {
-		res.success();
 	}
 });
