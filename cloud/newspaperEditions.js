@@ -150,3 +150,13 @@ Parse.Cloud.beforeSave("NewspaperEdition", function(req, res) {
 		res.success();
 	}
 });
+
+// Clean up all the sections associated with the edition being deleted
+Parse.Cloud.afterDelete("NewspaperEdition", function(req, res) {
+	if (!req.user) {
+		console.error("NewspaperSection cleanup must be made by valid user.");
+	} else {
+		return Parse.Object.destroyAll(req.object.get("sections"),
+			{sessionToken: req.user.getSessionToken()});
+	}
+});
