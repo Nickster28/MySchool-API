@@ -63,6 +63,7 @@ function publishEdition(edition) {
  * ------------------------------------------
  * Parameters:
  *		edition - the edition to set default sections for
+ *		sessionToken - the session token of the user making this request
  *
  * Returns: a promise that creates newspaper sections for the given edition
  * 			(based on the names in DEFAULT_NEWSPAPER_SECTIONS in the server
@@ -70,14 +71,15 @@ function publishEdition(edition) {
  *			to them.
  * ------------------------------------------
  */
-function setDefaultSectionsForEdition(edition) {
+function setDefaultSectionsForEdition(edition, sessionToken) {
+	var NewspaperSection = Parse.Object.extend("NewspaperSection");
 	return Parse.Config.get().then(function(config) {
 		var promises = [];
 		var sections = config.get("DEFAULT_NEWSPAPER_SECTIONS")
 			.map(function(sectionName) {
-				var section = new Parse.Object("NewspaperSection");
+				var section = new NewspaperSection();
 				section.set("sectionName", sectionName);
-				promises.push(section.save());
+				promises.push(section.save(null, {sessionToken: sessionToken}));
 				return section;
 		});
 
@@ -103,10 +105,17 @@ function setDefaultSectionsForEdition(edition) {
  * -----------------------------------
  */
 Parse.Cloud.beforeSave("NewspaperEdition", function(req, res) {
+	if (!req.user) {
+		res.error("NewspaperEdition must be made by logged-in user");
+
 	// If it isn't new, check the database copy to see if it's being published
-	if (!req.object.isNew() && req.object.dirtyKeys().includes("isPublished")) {
+	} else if (!req.object.isNew() &&
+		req.object.dirtyKeys().includes("isPublished")) {
+
 		var query = new Parse.Query("NewspaperEdition");
-		return query.get(req.object.id).then(function(edition) {
+		return query.get(req.object.id,
+			{sessionToken: req.user.getSessionToken()}).then(function(edition) {
+
 			if (edition.get("isPublished") != req.object.get("isPublished") &&
 				req.object.get("isPublished")) {
 				return publishEdition(edition);
@@ -120,19 +129,24 @@ Parse.Cloud.beforeSave("NewspaperEdition", function(req, res) {
 		// 1) Validate the edition name and
 		// 2) add the default sections to the edition
 		var name = req.object.get("editionName");
-		return isValidNewspaperEditionName(name).then(function(isValid) {
+		return isValidNewspaperEditionName(name, req.user.getSessionToken())
+			.then(function(isValid) {
+
 			if (!isValid) {
 				res.error("Newspaper Edition name is not unique");
 			} else {
 				// Fill in defaults
 				req.object.set("isPublished", false);
-				return setDefaultSectionsForEdition(req.object)
-					.then(function() {
-						res.success();
+				return setDefaultSectionsForEdition(req.object,
+					req.user.getSessionToken()).then(function() {
+
+					res.success();
 				});
 			}
 		}, function(error) {
 			res.error(error);
 		});
+	} else {
+		res.success();
 	}
 });
