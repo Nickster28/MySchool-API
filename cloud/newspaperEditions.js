@@ -79,6 +79,7 @@ function setDefaultSectionsForEdition(edition, sessionToken) {
 			.map(function(sectionName) {
 				var section = new NewspaperSection();
 				section.set("sectionName", sectionName);
+				section.set("articles", []);
 				promises.push(section.save(null, {sessionToken: sessionToken}));
 				return section;
 		});
