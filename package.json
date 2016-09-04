@@ -7,11 +7,10 @@
     "type": "git",
     "url": "https://github.com/Nickster28/MyMaret-API"
   },
-  "license": "MIT",
   "dependencies": {
     "express": "~4.11.x",
-    "parse": "~1.8.0",
-    "parse-server": "~2.2.15"
+    "parse": "~1.9.1",
+    "parse-server": "~2.2.18"
   },
   "scripts": {
     "start": "node server.js",
