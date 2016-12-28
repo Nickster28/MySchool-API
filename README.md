@@ -23,10 +23,10 @@ This file relies on a companion runLocal.json file with the server info in the f
 ```javascript
 {
 	"configs": {
-		...
+		// config object map
 	},
 	"dashboard": {
-		...
+		// dashboard config
 	}
 }
 ```
