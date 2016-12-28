@@ -1,63 +1,56 @@
 /* FILE: runLocal.js
 ----------------------
-Runs different configurations of the MyMaret-API.  Takes 1-2 command line
-arguments:
+Runs different configurations of the MySchool-API.  Relies on a companion
+runLocal.json file with the server info in the following format:
 
-node runLocal.js SERVER_NAME DEBUG_OPTION
+{
+	"configs": {
+		...
+	},
+	"dashboard": {
+		...
+	}
+}
 
-- (REQUIRED) SERVER_NAME - must match a key in serverInfo.json, which must map
-to an object containing "appId", "masterKey", and "mongoUri" fields.
-- (OPTIONAL) DEBUG_OPTION - either "debugger" or "instant-reload".  "debugger"
-runs using node-debug instead of node, which launches a debugger window.
-"instant-reload" runs using nodemon instead of node, which auto-relaunches the
-server whenever a file changes.
+where "configs" maps to a dictionary of server names to server config objects,
+and "dashboard" maps to a Parse Dashboard config object as a JSON string.
+Each config object must have an "appId", "masterKey", and "mongoUri" field.
 
-Uses the SERVER_NAME field to run the appropriate launch command with the
-right APP_ID, MASTER_KEY and MONGODB_URI environment variables.
+With this companion file, this script takes 1-2 command line arguments:
+
+	node runLocal.js SERVER_NAME DEBUG_OPTION
+
+- (REQUIRED) SERVER_NAME - must match a configuration object in "configs" above.
+Runs that server configuration.
+- (OPTIONAL) DEBUG_OPTION - if "debug", runs using node-debug instead of the
+default nodemon.
 ----------------------
 */
 
-var execSync = require('child_process').execSync;
-var fs = require('fs');
-var serverInfo = JSON.parse(fs.readFileSync('serverInfo.json', 'utf8'));
+var execSync = require("child_process").execSync;
+var fs = require("fs");
+var serverInfo = JSON.parse(fs.readFileSync("runLocal.json", "utf8"));
 
-/* FUNCTION: serverArgsStringForServerName
+
+/* FUNCTION: argsStringForServerName
  * ----------------------------------------
  * Parameters:
  * 		serverName - name of the server to create a string for
  *
  * Returns: the command line string needed to start parse server.
- * 		Format: "APP_ID={APP_ID} MASTER_KEY={MASTER_KEY} MONGODB_URI={URI}"
+ * 		Format: "APP_ID={APP_ID} MASTER_KEY={MASTER_KEY} MONGODB_URI={URI} DASHBOARD_CONFIG={JSON_STRING}"
  * ----------------------------------------
  */
-function serverArgsStringForServerName(serverName) {
-	var selectedServerInfo = serverInfo[serverName];
+function argsStringForServerName(serverName) {
+	var selectedServerInfo = serverInfo.configs[serverName];
 	if (!selectedServerInfo) return null;
 
 	return 'APP_ID=\"' + selectedServerInfo.appId + '\" MASTER_KEY=\"' +
 		selectedServerInfo.masterKey + '\" MONGODB_URI=\"' +
-		selectedServerInfo.mongoUri + '\"';
+		selectedServerInfo.mongoUri + '\"' + '\" DASHBOARD_CONFIG=\"' +
+		JSON.toString(serverInfo.dashboard) + '\"';
 }
 
-/* FUNCTION: commandForServerOption
- * ---------------------------------
- * Parameters:
- * 		serverOption - name of the option to use when starting the server
- *
- * Returns: name of the command line command to run for this option.  Options
- *	currently include 'debugger' and 'instant-reload', or none.
- */
- function commandForServerOption(serverOption) {
- 	if (serverOption == null) {
- 		return "node";
- 	} else if (serverOption == "instant-reload") {
-		return "nodemon";
-	} else if (serverOption == "debugger") {
-		return "node-debug";
-	} else {
-		return null;
-	}
- }
 
 // Ignore the first 2 'node' and process name args
 var args = process.argv.slice(2)
@@ -66,11 +59,6 @@ var argsString = serverArgsStringForServerName(args[0]);
 if (!argsString) {
 	console.error("Error: invalid server name");
 } else {
-	var command = commandForServerOption(args[1]);
-	if (!command) {
-		console.error("Error: invalid server option");
-	} else {
-		execSync(argsString + " " + command + " " + "server.js",
-			{stdio:[0,1,2]});
-	}
+	var command = args[1] == "debug" ? "node-debug" : "nodemon";
+	execSync(argsString + " " + command + " " + "server.js", {stdio:[0,1,2]});
 }
