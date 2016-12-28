@@ -20,7 +20,7 @@ Dashboard is mounted at /dashboard.
 It's also easy to run different server configurations and debugging options using the runLocal.js file.
 This file relies on a companion runLocal.json file with the server info in the following format:
 
-```json
+```javascript
 {
 	"configs": {
 		...
