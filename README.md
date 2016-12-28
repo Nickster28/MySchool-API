@@ -3,13 +3,18 @@ API for the MySchool app.  To start, run `npm install` to install all necessary 
 
 `npm start`
 
-##Expects the following environment variables:
+The server expects the following environment variables:
+
 - **APP_ID** - Parse Server App ID to use
 - **MASTER_KEY** - Parse Server Master Key to use
 - **MONGODB_URI** - URL of the MongoDB instance to use
-- **(OPTIONAL) DASHBOARD_CONFIG** - optional stringified JSON object to configure the [Parse Dashboard](https://github.com/ParsePlatform/parse-dashboard) (see its GitHub docs for more info).
-- **(OPTIONAL) SERVER_URL** - the URL this server is running from (defaults to http://localhost:1337)
-- **(OPTIONAL) PORT** - the port to run from (defaults to 1337)
+
+The server also accepts additional optional environment variables:
+
+- **DASHBOARD_CONFIG** - optional stringified JSON object to configure the [Parse Dashboard](https://github.com/ParsePlatform/parse-dashboard) (see its GitHub docs for more info).  If this variable is specified, a Parse
+Dashboard is mounted at /dashboard.
+- **SERVER_URL** - the URL this server is running from (defaults to http://localhost:1337)
+- **PORT** - the port to run from (defaults to 1337)
 
 ## Testing and Debugging
 It's also easy to run different server configurations and debugging options using the runLocal.js file.
@@ -34,7 +39,7 @@ With this companion file, this script takes 1-2 command line arguments:
 
 ```javascript
 	node runLocal.js SERVER_NAME DEBUG_OPTION
-```javascript
+```
 
 - (REQUIRED) SERVER_NAME - must match a configuration object in "configs" above.
 Runs that server configuration.
