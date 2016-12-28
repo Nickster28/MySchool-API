@@ -15,7 +15,8 @@ var api = new ParseServer({
 });
 
 var dashboardSettings = process.env.PARSE_DASHBOARD_CONFIG;
-dashboardSettings.trustProxy = 1;
+dashboardSettings.trustProxy = true;
+console.log(dashboardSettings);
 var dashboard = new ParseDashboard(dashboardSettings);
 
 var app = express();
