@@ -14,9 +14,7 @@ var api = new ParseServer({
   	serverURL: (process.env.SERVER_URL || 'http://localhost:1337') + mountPath
 });
 
-var dashboardSettings = process.env.PARSE_DASHBOARD_CONFIG;
-dashboardSettings.trustProxy = true;
-console.log(dashboardSettings);
+var dashboardSettings = JSON.parse(process.env.PARSE_DASHBOARD_CONFIG);
 var dashboard = new ParseDashboard(dashboardSettings);
 
 var app = express();
