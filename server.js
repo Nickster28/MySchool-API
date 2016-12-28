@@ -1,5 +1,6 @@
 var express = require('express');
 var ParseServer = require('parse-server').ParseServer;
+var ParseDashboard = require('parse-dashboard');
 var path = require('path');
 
 // Serve the Parse API on the /parse URL prefix
@@ -13,12 +14,16 @@ var api = new ParseServer({
   	serverURL: (process.env.SERVER_URL || 'http://localhost:1337') + mountPath
 });
 
+var dashboard = new ParseDashboard(process.env.PARSE_DASHBOARD_CONFIG);
+
 var app = express();
 
 // Serve static assets from the /public folder
 app.use('/public', express.static(path.join(__dirname, '/public')));
 
 app.use(mountPath, api);
+
+app.use('/dashboard', dashboard);
 
 // Parse Server plays nicely with the rest of your web routes
 app.get('/', function(req, res) {
