@@ -14,10 +14,11 @@
     "parse-server": "~2.2.18"
   },
   "scripts": {
-    "start": "node runLocal.js prod",
+    "start": "node server.js",
+    "start:prod": "node runLocal.js prod",
     "start:staging": "node runLocal.js staging",
-    "debug": "node runLocal.js prod debug",
-    "debug:staging": "node runLocal.js staging debug",
+    "debug:prod": "node runLocal.js prod debug",
+    "debug:staging": "node runLocal.js staging debug"
   },
   "engines": {
     "node": ">=4.3"
