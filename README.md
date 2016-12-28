@@ -41,10 +41,10 @@ With this companion file, this script takes 1-2 command line arguments:
 	node runLocal.js SERVER_NAME DEBUG_OPTION
 ```
 
-- (REQUIRED) SERVER_NAME - must match a configuration object in "configs" above.
+- **SERVER_NAME** - must match a configuration object in "configs" above.
 Runs that server configuration.
-- (OPTIONAL) DEBUG_OPTION - if "debug", runs using node-debug instead of the
-default nodemon.
+- **DEBUG_OPTION** - if "debug", runs using node-debug instead of the
+default nodemon.  Optional.
 
 The included package.json file relies on runLocal.js to run various server
 configurations.  Take a look to see what different npm run commands are built in.
