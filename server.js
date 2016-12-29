@@ -10,7 +10,7 @@ if (!process.env.MONGODB_URI || !process.env.APP_ID ||
     process.exit(1);
 }
 
-var app = express();
+const app = express();
 
 
 /* OPTIONAL ENDPOINT: /dashboard
@@ -19,9 +19,9 @@ If a dashboard config is provided, mount the Parse Dashboard at the /dashboard
 endpoint endpoint.  Then, to view the dashboard, go to /dashboard.
 ---------------------
 */
-var dashboardConfig = process.env.DASHBOARD_CONFIG;
+const dashboardConfig = process.env.DASHBOARD_CONFIG;
 if (dashboardConfig) {
-    var dashboard = new ParseDashboard(JSON.parse(dashboardConfig));
+    const dashboard = new ParseDashboard(JSON.parse(dashboardConfig));
     app.use("/dashboard", dashboard);
 }
 
@@ -62,8 +62,8 @@ app.get("*", function(req, res) {
 });
 
 // Start the server
-var port = process.env.PORT || 1337;
-var httpServer = require("http").createServer(app);
+const port = process.env.PORT || 1337;
+const httpServer = require("http").createServer(app);
 httpServer.listen(port, function() {
     console.log("API server running on port " + port + ".");
 });
