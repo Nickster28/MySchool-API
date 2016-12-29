@@ -1,4 +1,4 @@
-# MySchool-API
+# MySchool API
 API for the MySchool app scaffold.  To start, run `npm install` to install all
 necessary packages, and then run
 
@@ -9,13 +9,17 @@ The server expects the following environment variables:
 - **APP_ID** - Parse Server App ID to use
 - **MASTER_KEY** - Parse Server Master Key to use
 - **MONGODB_URI** - URL of the MongoDB instance to use
+- **CALENDAR_SERVER_URL** - URL of the calendar server that provides school
+calendar and athletics information.  See
+[Calendar Server](https://github.com/Nickster28/myschool-api/wiki/Calendar Server)
+for more information.
 
 The server also accepts additional optional environment variables:
 
 - **DASHBOARD_CONFIG** - optional stringified JSON object to configure the
-[Parse Dashboard](https://github.com/ParsePlatform/parse-dashboard)
-(see its GitHub docs for more info).  If this variable is specified, a Parse
-Dashboard is mounted at /dashboard.
+[Parse Dashboard](https://github.com/ParsePlatform/parse-dashboard).  See the
+Parse Dashboard Wiki for more information.  If this variable is specified, a
+Parse Dashboard is mounted at /dashboard.
 - **SERVER_URL** - the URL this server is running from
 (defaults to http://localhost:1337)
 - **PORT** - the port to run from (defaults to 1337)
