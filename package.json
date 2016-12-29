@@ -1,11 +1,11 @@
 {
-  "name": "MyMaret-API",
+  "name": "MySchool-API",
   "version": "0.0.1",
-  "description": "API for the MyMaret app",
+  "description": "API for the MySchool app",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Nickster28/MyMaret-API"
+    "url": "https://github.com/Nickster28/MySchool-API"
   },
   "dependencies": {
     "express": "^4.14.0",

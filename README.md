@@ -1,6 +1,6 @@
 # MySchool-API
-API for the MySchool app.  To start, run `npm install` to install all necessary
-packages, and then run
+API for the MySchool app scaffold.  To start, run `npm install` to install all
+necessary packages, and then run
 
 `npm start`
 
