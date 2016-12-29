@@ -81,7 +81,7 @@ function setDefaultSectionsForEdition(edition, sessionToken) {
 				var section = new NewspaperSection();
 				section.set("sectionName", sectionName);
 				section.set("articles", []);
-				return section.save(null, {sessionToken: sessionToken}));
+				return section.save(null, {sessionToken: sessionToken});
 		});
 
 		return Parse.Promise.when(promises);
