@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "express": "^4.14.0",
-    "parse": "~1.9.1",
+    "parse": "^1.9.2",
     "parse-dashboard": "^1.0.22",
     "parse-server": "^2.3.1"
   },
@@ -19,7 +19,7 @@
     "start:staging": "node runLocal.js staging",
     "debug:prod": "node runLocal.js prod debug",
     "debug:staging": "node runLocal.js staging debug",
-    "calendar-job": "node updateCalendars.js"
+    "update-calendars": "node updateCalendars.js"
   },
   "engines": {
     "node": ">=4.3"
