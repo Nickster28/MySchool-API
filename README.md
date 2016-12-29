@@ -1,5 +1,6 @@
 # MySchool-API
-API for the MySchool app.  To start, run `npm install` to install all necessary packages, and then run
+API for the MySchool app.  To start, run `npm install` to install all necessary
+packages, and then run
 
 `npm start`
 
@@ -11,14 +12,18 @@ The server expects the following environment variables:
 
 The server also accepts additional optional environment variables:
 
-- **DASHBOARD_CONFIG** - optional stringified JSON object to configure the [Parse Dashboard](https://github.com/ParsePlatform/parse-dashboard) (see its GitHub docs for more info).  If this variable is specified, a Parse
+- **DASHBOARD_CONFIG** - optional stringified JSON object to configure the
+[Parse Dashboard](https://github.com/ParsePlatform/parse-dashboard)
+(see its GitHub docs for more info).  If this variable is specified, a Parse
 Dashboard is mounted at /dashboard.
-- **SERVER_URL** - the URL this server is running from (defaults to http://localhost:1337)
+- **SERVER_URL** - the URL this server is running from
+(defaults to http://localhost:1337)
 - **PORT** - the port to run from (defaults to 1337)
 
 ## Testing and Debugging
-It's also easy to run different server configurations and debugging options using the runLocal.js file.
-This file relies on a companion runLocal.json file with the server info in the following format:
+It's also easy to run different server configurations and debugging options
+using the runLocal.js file.  This file relies on a companion runLocal.json file
+with the server info in the following format:
 
 ```javascript
 {
@@ -47,7 +52,10 @@ Runs that server configuration.
 default nodemon.  Optional.
 
 The included package.json file relies on runLocal.js to run various server
-configurations.  Take a look to see what different npm run commands are built in.
+configurations.  Take a look to see what different npm commands are built in.
 
 ## Additional Tidbits
-There is a `commitAndPushAll.sh` script included, which if run, will commit and push the entered file changes to both staging and master.  It will ask for a commit message on launch.  Note that you will need to add any untracked files before running this script.
+There is a `commitAndPushAll.sh` script included, which if run, will commit and
+push the entered file changes to both staging and master.  It will ask for a
+commit message on launch.  Note that you will need to add any untracked files
+before running this script.
