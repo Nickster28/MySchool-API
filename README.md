@@ -11,7 +11,7 @@ The server expects the following environment variables:
 - **MONGODB_URI** - URL of the MongoDB instance to use
 - **CALENDAR_SERVER_URL** - URL of the calendar server that provides school
 calendar and athletics information.  See
-[Calendar Server](https://github.com/Nickster28/myschool-api/wiki/Calendar Server)
+[Calendar Server](https://github.com/Nickster28/myschool-api/wiki/calendar-server)
 for more information.
 
 The server also accepts additional optional environment variables:
