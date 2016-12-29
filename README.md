@@ -1,5 +1,5 @@
 # MySchool API
-API for the MySchool app scaffold, built on top of [Parse Server](https://github.com/parse/parse-server).  To start, run `npm install` to install all necessary packages,
+API for the MySchool app scaffold, built on top of [Parse Server](https://github.com/ParsePlatform/parse-server).  To start, run `npm install` to install all necessary packages,
 and then run
 
 `npm start`
