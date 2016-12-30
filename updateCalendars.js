@@ -35,7 +35,8 @@ function updateCalendars(serverURL) {
 	}).then(function() {
 		console.log("Calendars updated!");
 	}, function(error) {
-		console.log("An error occurred: " + error.stack);
+		console.log("An error occurred: " + JSON.stringify(error));
+		console.log(error.stack);
 	});
 }
 
@@ -48,6 +49,8 @@ Parameters:
 Returns: a promise that sends a request to the given URL to update our school
 calendar data on Parse.  We replace all existing school calendar data with the
 updated data.
+
+Requires Master Key usage to access locked down CalendarEvent objects.
 ----------------------------------
 */
 function updateSchoolCalendar(serverURL) {
@@ -97,9 +100,12 @@ Parameters:
 
 Returns: a promise that saves new CalendarEvent objects for each element in
 the calendarData array.  Saves all objects to the server in parallel.
+
+Requires Master Key usage to access locked down CalendarEvent objects.
 -------------------------------------
 */
 function createNewCalendarEvents(calendarData) {
+	Parse.Cloud.useMasterKey();
 	return Parse.Promise.when(calendarData.map(function(eventData) {
 		// Create a new CalendarEvent Parse object
 		const calendarEvent = new CalendarEvent();
@@ -127,15 +133,36 @@ Returns: a promise that sends a request to the given URL to update our athletics
 calendar data on Parse.  We do a diff on our existing athletics events to check
 for updates to those events, and if we see an update to the time or status,
 we send a push notification for anyone who's subscribed to that team's channel.
+Removes any athletics events NOT in the updated data.
 ----------------------------------
 */
 function updateAthleticsCalendar(serverURL) {
 	return getURL(serverURL + "/athleticsCalendar").then(function(response) {
 		return JSON.parse(response);
 	}).then(function(calendarData) {
-		return updateAthleticsEvents(calendarData.games, true).then(function() {
-			return updateAthleticsEvents(calendarData.practices, false);
+		return fetchExistingAthleticsEvents().then(function(existingEvents) {
+			return Parse.Promise.as([existingEvents, calendarData]);
 		});
+	}).then(function(data) {
+		const existingEvents = data[0];
+		const games = data[1].games;
+		const practices = data[1].practices;
+
+		// Make a map from hashCodes to AthleticsEvents for existing events
+		// This map is modified and returned by updateAthletisEvents below.
+		const existingEventsMap = {};
+		existingEvents.forEach(function(existingEvent) {
+			const hashCode = existingEvent.get("hashCode");
+			existingEventsMap[hashCode] = existingEvent;
+		});
+
+		return updateAthleticsEvents(games, true, existingEventsMap)
+			.then(function(remainingEventsMap) {
+			
+			return updateAthleticsEvents(practices, false, remainingEventsMap);
+		});
+	}).then(function(remainingEventsMap) {
+		removeRemainingAthleticsEvents(remainingEventsMap);
 	});
 }
 
@@ -146,10 +173,13 @@ Parameters:
 	eventsData - an array of event objects containing current athletics event
 				information to update the server with.
 	areGames - whether or not the events in eventsData are games or practices.
+	existingEventsMap - a map of existing events' hashcodes to the
+						AthleticsEvents themselves.
 
 Returns: a promise that updates all athletics games and practices in the
 database with the current data, and sends out push notifications to any
-subscribed users if any event time or status changes.
+subscribed users if any event time or status changes.  Returns a modified
+existingEventsMap with only the events we didn't touch.
 
 NOTE: assumes at most one game and practice per team per day.  Otherwise, it
 would be very tricky to track events if they move to a new time.  If, in the
@@ -157,52 +187,64 @@ fetched data, there are multiple games or multiple practices for a team on a
 given day, only the first one is used.  Similarly, we assume that an event's
 DATE does not change (since there would be no easy way to identify an event
 across date changes).
+
+Requires Master Key usage to access locked down AthleticsEvent objects.
 -----------------------------------
 */
-function updateAthleticsEvents(eventsData, areGames) {
-	const updateStart = new Date();
-
+function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 	Parse.Cloud.useMasterKey();
 	console.log("Updating " + (areGames ? "games..." : "practices..."));
 	var numChanged = 0;
 	var numNew = 0;
 
+	// This set contains the hashCodes of all *new* events we've gone over
+	// Vs. existingEventsMap, which is all *existing* events we haven't yet
+	// gone over.
+	const newEvents = new Set();
+
 	// Sequentially check each event in eventsData
 	var promise = Parse.Promise.as();
 	eventsData.forEach(function(eventData) {
 		promise = promise.then(function() {
-			return fetchAthleticsEventForEventData(eventData, areGames);
-		}).then(function(event) {
-			// See if an event is new or if it's already been added
+			const hashCode = hashAthleticsEventWithData(eventData, areGames);
+			var event = existingEventsMap[hashCode];
+
+			// See if an event is new or if it's in the old database
 			const alreadyExists = event ? true : false;
 			if (event) {
-				// If the colliding event was already touched this round,
-				// the event data we're looking at should be ignored
-				if (event.updatedAt > updateStart) {
-					return Parse.Promise.as();
-				}
+				// Clear this event since we looked at it
+				delete existingEventsMap[hashCode];
 
-				// Otherwise, diff it against the new data
+				// Diff it against the new data and update if needed
 				const changed = diffAthleticsEvent(event, eventData, areGames);
 				if (changed) {
-					console.log("Event \"" + event.get("hashCode") +
-						"\" (" + event.id + ") updated");
+					console.log("Event \"" + event.get("hashCode") + "\" (" +
+						event.id + ") updated");
 					console.log(JSON.stringify(eventData));
 					numChanged += 1;
 				}
-			} else {
-				event = newAthleticsEventFromEventData(eventData, areGames);
+			} else if (!newEvents.has(hashCode)) {
+				// If it's not in the old database AND not already in our new
+				// data, add it.
+				event = newAthleticsEventFromEventData(eventData, hashCode);
 				numNew += 1;
+			} else {
+				// Otherwise it's not in the old database, but was added already
+				return Parse.Promise.as();
 			}
 
-			// Only add it to a team if it's a new event
+			// Mark the event as seen
+			newEvents.add(hashCode);
+
 			var returnedPromise = event.save();
+
+			// Only add it to a team if it's a new event
 			if (!alreadyExists) {
 				returnedPromise = returnedPromise.then(function(savedEvent) {
 					return addEventToTeam(eventData.team, savedEvent, areGames);
 				});
 			}
-			
+
 			return returnedPromise;
 		});
 	});
@@ -213,25 +255,28 @@ function updateAthleticsEvents(eventsData, areGames) {
 		console.log("# Changed: " + numChanged);
 		console.log("# New: " + numNew);
 		console.log("Total: " + eventsData.length);
+	}).then(function() {
+		// Return all events in the database we didn't touch
+		return Parse.Promise.as(existingEventsMap);
 	});
 }
 
 
 /* FUNCTION: fetchAthleticsEventForEventData
 ----------------------------------------------------
-Parameters:
-	eventData - the event data object to attempt to fetch an AthleticsEvent for
-	isGame - whether the given event data is for a game or practice
+Parameters: NA
 
-Returns: a promise passing back an AthleticsEvent already in our database for
-the given eventData, if any.  The lookup is done using the event's hashCode.
+Returns: a promise passing back all existing AthleticsEvent objects in the
+database.
+
+Requires Master Key usage to access locked down AthleticsEvent objects.
 ----------------------------------------------------
 */
-function fetchAthleticsEventForEventData(eventData, isGame) {
+function fetchExistingAthleticsEvents() {
+	Parse.Cloud.useMasterKey();
 	const eventQuery = new Parse.Query("AthleticsEvent");
-	const hashCode = hashAthleticsEventWithData(eventData, isGame);
-	eventQuery.equalTo("hashCode", hashCode);
-	return eventQuery.first();
+	eventQuery.limit(1000);
+	return eventQuery.find();
 }
 
 
@@ -288,6 +333,8 @@ function diffAthleticsEvent(event, eventData, isGame) {
 
 	// If the event TIME changed... (date can't change)
 	if (event.get("startDateTime").toJSON() != eventData.startDateTime) {
+		console.log(event.get("startDateTime").toJSON() + " changed to " +
+			eventData.startDateTime);
 		const newDate = new Date(eventData.startDateTime);
 
 		var newHour = newDate.getHours();
@@ -312,7 +359,7 @@ function diffAthleticsEvent(event, eventData, isGame) {
 -------------------------------------------
 Parameters:
 	eventData - the data to make a new AthleticsEvent object out of
-	isGame - whether or not the event we're making is a game or practice
+	hashCode - the hashCode for this event data
 
 Returns: a new AthleticsEvent object made out of the given eventData.  An
 AthleticsEvent has the following fields:
@@ -324,12 +371,11 @@ AthleticsEvent has the following fields:
 	location - name of the location
 	result - "Win" or "Loss" or other game result string (games only)
 	status - status messages like "CANCELLED"
-
 -------------------------------------------
 */
-function newAthleticsEventFromEventData(eventData, isGame) {
+function newAthleticsEventFromEventData(eventData, hashCode) {
 	const event = new AthleticsEvent();
-	event.set("hashCode", hashAthleticsEventWithData(eventData, isGame));
+	event.set("hashCode", hashCode);
 	event.set("startDateTime", new Date(eventData.startDateTime));
 	if (eventData.isHome == true || eventData.isHome == false) {
 		event.set("isHome", eventData.isHome);
@@ -387,9 +433,12 @@ Parameters:
 
 Returns: a promise that adds the given event to either the given team's games
 or practices array, depending on whether the event is a game or practice.
+
+Requires Master Key usage to access locked down AthleticsEvent objects.
 ----------------------------
 */
 function addEventToTeam(teamName, event, isGame) {
+	Parse.Cloud.useMasterKey();
 	const teamQuery = new Parse.Query("AthleticsTeam");
 	teamQuery.equalTo("teamName", teamName);
 	return teamQuery.first().then(function(team) {
@@ -400,6 +449,26 @@ function addEventToTeam(teamName, event, isGame) {
 		}
 		return team.save();
 	});
+}
+
+
+/* FUNCTION: removeAthleticsEventsNotUpdatedAfter
+-------------------------------------------------
+Parameters:
+	remainingEventsMap - a map from hashCode to AthleticsEvents to delete.
+
+Returns: a promise that deletes all events in the remainingEventsMap.
+
+Requires Master Key usage to access/remove locked down AthleticsEvent objects.
+-------------------------------------------------
+*/
+function removeRemainingAthleticsEvents(remainingEventsMap) {
+	Parse.Cloud.useMasterKey();
+	const eventsToDelete = Object.keys(remainingEventsMap).map(function(key) {
+		return remainingEventsMap[key];
+	});
+	
+	return Parse.Object.destroyAll(eventsToDelete);
 }
 
 

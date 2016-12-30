@@ -37,7 +37,8 @@ function updateAthleticsTeams(serverURL) {
 	}).then(function() {
 		console.log("Athletics teams updated!");
 	}, function(error) {
-		console.log("An error occurred: " + error.stack);
+		console.log("An error occurred: " + JSON.stringify(error));
+		console.log(error.stack);
 	});
 }
 
