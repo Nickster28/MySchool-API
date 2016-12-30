@@ -51,7 +51,7 @@ function updateSchoolCalendar(serverURL) {
 		return JSON.parse(responseBody);
 	}).then(function(calendarData) {
 		Parse.Cloud.useMasterKey();
-		const oldCalendarQuery = new Parse.Query(CalendarEvent);
+		const oldCalendarQuery = new Parse.Query("CalendarEvent");
 		oldCalendarQuery.limit(1000);
 		return oldCalendarQuery.find().then(function(oldCalendarEvents) {
 			return Parse.Object.destroyAll(oldCalendarEvents);
