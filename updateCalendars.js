@@ -109,6 +109,11 @@ function createNewCalendarEvents(calendarData) {
 			calendarEvent.set("location", eventData.location);
 		}
 
+		// Only allow read access by students (no writes)
+		const acl = new Parse.ACL();
+		acl.setRoleReadAccess("Student", true);
+		calendarEvent.setACL(acl);
+		
 		return calendarEvent.save();
 	}));
 }

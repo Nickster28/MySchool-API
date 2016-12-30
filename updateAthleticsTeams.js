@@ -69,10 +69,11 @@ function createNewAthleticsTeams(athleticsData) {
 			athleticsTeam.set("games", []);
 			athleticsTeam.set("season", seasonName);
 
+			// Only allow read access by students (no writes)
 			const acl = new Parse.ACL();
 			acl.setRoleReadAccess("Student", true);
-
 			athleticsTeam.setACL(acl);
+
 			return athleticsTeam.save();
 		});
 		promises = promises.concat(seasonPromises);
