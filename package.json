@@ -11,15 +11,17 @@
     "express": "^4.14.0",
     "parse": "^1.9.2",
     "parse-dashboard": "^1.0.22",
-    "parse-server": "^2.3.1"
+    "parse-server": "^2.3.1",
+    "request": "^2.79.0"
   },
   "scripts": {
     "start": "node server.js",
-    "start:prod": "node runLocal.js prod",
-    "start:staging": "node runLocal.js staging",
-    "debug:prod": "node runLocal.js prod debug",
-    "debug:staging": "node runLocal.js staging debug",
-    "update-calendars": "node updateCalendars.js"
+    "start:prod": "node runLocal.js server.js prod",
+    "start:staging": "node runLocal.js server.js staging",
+    "debug:prod": "node runLocal.js server.js prod debug",
+    "debug:staging": "node runLocal.js server.js staging debug",
+    "update-calendars": "node updateCalendars.js",
+    "update-calendars:debug": "node runLocal.js updateCalendars.js prod"
   },
   "engines": {
     "node": ">=4.3"
