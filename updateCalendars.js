@@ -31,7 +31,7 @@ function updateCalendars(serverURL) {
 	}).then(function() {
 		console.log("Calendars updated!");
 	}, function(error) {
-		console.log("An error occurred: " + JSON.stringify(error));
+		console.log("An error occurred: " + error.stack);
 	});
 }
 
@@ -50,7 +50,8 @@ function updateSchoolCalendar(serverURL) {
 	return getURL(serverURL + "/schoolCalendar").then(function(responseBody) {
 		return JSON.parse(responseBody);
 	}).then(function(calendarData) {
-		const oldCalendarQuery = new Parse.Query("CalendarEvent");
+		Parse.Cloud.useMasterKey();
+		const oldCalendarQuery = new Parse.Query(CalendarEvent);
 		oldCalendarQuery.limit(1000);
 		return oldCalendarQuery.find().then(function(oldCalendarEvents) {
 			return Parse.Object.destroyAll(oldCalendarEvents);
@@ -109,11 +110,6 @@ function createNewCalendarEvents(calendarData) {
 			calendarEvent.set("location", eventData.location);
 		}
 
-		// Only allow read access by students (no writes)
-		const acl = new Parse.ACL();
-		acl.setRoleReadAccess("Student", true);
-		calendarEvent.setACL(acl);
-		
 		return calendarEvent.save();
 	}));
 }
@@ -135,13 +131,31 @@ function updateAthleticsCalendar(serverURL) {
 	return getURL(serverURL + "/athleticsCalendar").then(function(response) {
 		return JSON.parse(response);
 	}).then(function(calendarData) {
-		
+		return updateAthleticsGames(calendarData.games).then(function() {
+			return updateAthleticsPractices(calendarData.practices);
+		});
 	});
 }
 
 
+// 2 alerts: status changed, time changed
+function updateAthleticsGames(games) {
+	return Parse.Promise.when(games.map(function(game) {
+		return Parse.Promise.as();
+	}));
+}
+
+
+// 2 alerts: status changed, time changed
+function updateAthleticsPractices(practices) {
+	return Parse.Promise.when(practices.map(function(practice) {
+		return Parse.Promise.as();
+	}));
+}
+
+
 if (!process.env.SERVER_URL) process.env.SERVER_URL = "http://localhost:1337";
-Parse.initialize(process.env.APP_ID);
+Parse.initialize(process.env.APP_ID, null, process.env.MASTER_KEY);
 Parse.serverURL = process.env.SERVER_URL + "/parse";
 const calendarServerURL = process.env.CALENDAR_SERVER_URL;
 updateCalendars(calendarServerURL);

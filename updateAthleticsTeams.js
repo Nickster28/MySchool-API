@@ -26,6 +26,7 @@ function updateAthleticsTeams(serverURL) {
 	return getURL(serverURL + "/athleticsTeams").then(function(responseBody) {
 		return JSON.parse(responseBody);
 	}).then(function(athleticsData) {
+		Parse.Cloud.useMasterKey();
 		const oldTeamsQuery = new Parse.Query("AthleticsTeam");
 		oldTeamsQuery.limit(1000);
 		return oldTeamsQuery.find().then(function(oldTeams) {
@@ -36,7 +37,7 @@ function updateAthleticsTeams(serverURL) {
 	}).then(function() {
 		console.log("Athletics teams updated!");
 	}, function(error) {
-		console.log("An error occurred: " + JSON.stringify(error));
+		console.log("An error occurred: " + error.stack);
 	});
 }
 
@@ -68,12 +69,6 @@ function createNewAthleticsTeams(athleticsData) {
 			athleticsTeam.set("practices", []);
 			athleticsTeam.set("games", []);
 			athleticsTeam.set("season", seasonName);
-
-			// Only allow read access by students (no writes)
-			const acl = new Parse.ACL();
-			acl.setRoleReadAccess("Student", true);
-			athleticsTeam.setACL(acl);
-
 			return athleticsTeam.save();
 		});
 		promises = promises.concat(seasonPromises);
@@ -107,7 +102,7 @@ function getURL(url) {
 
 
 if (!process.env.SERVER_URL) process.env.SERVER_URL = "http://localhost:1337";
-Parse.initialize(process.env.APP_ID);
+Parse.initialize(process.env.APP_ID, null, process.env.MASTER_KEY);
 Parse.serverURL = process.env.SERVER_URL + "/parse";
 const calendarServerURL = process.env.CALENDAR_SERVER_URL;
 updateAthleticsTeams(calendarServerURL);
