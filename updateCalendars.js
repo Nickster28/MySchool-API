@@ -156,6 +156,8 @@ function updateAthleticsCalendar(serverURL) {
 			existingEventsMap[hashCode] = existingEvent;
 		});
 
+		// updateAthleticsEvents returns the portion of the existingEvents that
+		// it DIDN'T touch.
 		return updateAthleticsEvents(games, true, existingEventsMap)
 			.then(function(remainingEventsMap) {
 			
