@@ -42,14 +42,15 @@ with the server info in the following format:
 
 where "configs" maps to a dictionary of server names to server config objects,
 and "dashboard" maps to a Parse Dashboard config object as a JSON string.
-Each config object must have an "appId", "masterKey", and "mongoUri" field.
+Each config object must have an "appId", "masterKey", "calendarServerUrl" and "mongoUri" field.
 
-With this companion file, this script takes 1-2 command line arguments:
+With this companion file, this script takes 2-3 command line arguments:
 
 ```javascript
-	node runLocal.js SERVER_NAME DEBUG_OPTION
+	node runLocal.js FILE_NAME SERVER_NAME DEBUG_OPTION
 ```
 
+- **FILE_NAME** - either server.js or updateCalendars.js, to run
 - **SERVER_NAME** - must match a configuration object in "configs" above.
 Runs that server configuration.
 - **DEBUG_OPTION** - if "debug", runs using node-debug instead of the

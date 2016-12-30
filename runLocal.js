@@ -64,8 +64,5 @@ if (!argsString) {
 	console.error("Error: invalid server name");
 } else {
 	var command = args[2] == "debug" ? "node-debug" : "nodemon";
-	if (args[0] == "updateCalendars.js" && command == "nodemon") {
-		command = "node";
-	}
 	execSync(argsString + " " + command + " " + args[0], {stdio:[0,1,2]});
 }
