@@ -30,13 +30,14 @@ There are also multiple scheduled scripts that are run at different intervals
 runLocal.js script (see below).
 
 ###updateCalendars.js###
-This script, to be run every 10min, keeps CalendarEvent and AthleticsEvent data
-up to date.  It also notifies interested users if any athletics events change.
+This script, to be run every 10 minutes (or more frequently if possible), keeps
+CalendarEvent and AthleticsEvent data up to date using data from the Calendar
+Server.  It also notifies interested users if any athletics events change.
 
 ###updateAthleticsTeams.js###
 This script, to be run only once per year, (or more often if needed), clears out
 all existing AthleticsTeam data (including corresponding AthleticsEvents) and
-replaces them with new, empty AthleticTeam objects based on the Calendar Server
+replaces them with new, empty AthleticsTeam objects based on the Calendar Server
 data.
 
 ## Testing and Debugging
