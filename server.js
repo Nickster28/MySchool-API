@@ -1,3 +1,11 @@
+/* FILE: server
+--------------------
+The main MySchool API server starting point.  Launches an express server
+and mounts the Parse API at /parse and the Parse Dashboard at /dashboard.
+--------------------
+*/
+
+
 const express = require("express");
 const ParseDashboard = require("parse-dashboard");
 const ParseServer = require("parse-server").ParseServer;

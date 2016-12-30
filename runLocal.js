@@ -21,7 +21,7 @@ With this companion file, this script takes 1-2 command line arguments:
 
 	node runLocal.js FILE_NAME SERVER_NAME DEBUG_OPTION
 
-- (REQUIRED) FILE_NAME - either "server.js" or "updateCalendars.js" to run
+- (REQUIRED) FILE_NAME - the name of the file to run
 - (REQUIRED) SERVER_NAME - must match a configuration object in "configs" above.
 Runs that server configuration.
 - (OPTIONAL) DEBUG_OPTION - if "debug", runs using node-debug instead of the

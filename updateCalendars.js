@@ -1,3 +1,13 @@
+/* FILE: updateCalendars
+-------------------------
+Polls the given calendar server and updates school calendar and athletics
+calendar data in Parse with the result.  Overwrites all school calendar events
+with the new data, and diffs athletics event data to send alerts about event
+changes.
+-------------------------
+*/
+
+
 const Parse = require("parse/node");
 const request = require("request");
 
@@ -29,7 +39,7 @@ function updateCalendars(serverURL) {
 /* FUNCTION: updateSchoolCalendar
 ----------------------------------
 Parameters:
-	serverURL - the URL to request school calendar data from.
+	serverURL - the URL to request school calendar data from. (/schoolCalendar)
 
 Returns: a promise that sends a request to the given URL to update our school
 calendar data on Parse.  We replace all existing school calendar data with the
@@ -104,9 +114,24 @@ function createNewCalendarEvents(calendarData) {
 }
 
 
-// TODO
+/* FUNCTION: updateAthleticsCalendar
+----------------------------------
+Parameters:
+	serverURL - the URL to request athletics calendar data from.
+				(/athleticsCalendar)
+
+Returns: a promise that sends a request to the given URL to update our athletics
+calendar data on Parse.  We do a diff on our existing athletics events to check
+for updates to those events, and if we see an update, or an event is removed,
+we send a push notification for anyone who's subscribed to that team's channel.
+----------------------------------
+*/
 function updateAthleticsCalendar(serverURL) {
-	return Parse.Promise.as(true);
+	return getURL(serverURL + "/athleticsCalendar").then(function(response) {
+		return JSON.parse(response);
+	}).then(function(calendarData) {
+		
+	});
 }
 
 

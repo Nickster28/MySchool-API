@@ -16,12 +16,14 @@
   },
   "scripts": {
     "start": "node server.js",
-    "start:prod": "node runLocal.js server.js prod",
-    "start:staging": "node runLocal.js server.js staging",
-    "debug:prod": "node runLocal.js server.js prod debug",
-    "debug:staging": "node runLocal.js server.js staging debug",
+    "prod:start": "node runLocal.js server.js prod",
+    "staging:start": "node runLocal.js server.js staging",
+    "prod:debug": "node runLocal.js server.js prod debug",
+    "staging:debug": "node runLocal.js server.js staging debug",
     "update-calendars": "node updateCalendars.js",
-    "update-calendars:debug": "node runLocal.js updateCalendars.js prod"
+    "update-calendars:test": "node runLocal.js updateCalendars.js prod",
+    "update-athletics-teams": "node updateAthleticsTeams.js",
+    "update-athletics-teams:test": "node runLocal.js updateAthleticsTeams.js prod"
   },
   "engines": {
     "node": ">=4.3"
