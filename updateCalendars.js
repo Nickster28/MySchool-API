@@ -373,7 +373,7 @@ field in this event changed to the given new value.
 function sendAlertForTeam(team, fieldChanged, newValue, isGame, date) {
 	const dateString = (date.getMonth() + 1) + "/" + date.getDate();
 	const eventType = isGame ? "game" : "practice";
-	console.log(team + " " + eventType + " on " + dateString + " "
+	console.log(team + " " + eventType + " on " + dateString + ": "
 		+ fieldChanged + " changed to " + newValue + ".");
 }
 
