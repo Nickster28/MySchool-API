@@ -31,9 +31,7 @@ function updateAthleticsTeams(serverURL) {
 		return oldTeamsQuery.find().then(function(oldTeams) {
 			return Parse.Object.destroyAll(oldTeams);
 		}).then(function() {
-			return (new Parse.Query(Parse.Role)).find();
-		}).then(function(roles) {
-			return createNewAthleticsTeams(athleticsData, roles);
+			return createNewAthleticsTeams(athleticsData);
 		});
 	}).then(function() {
 		console.log("Athletics teams updated!");
@@ -49,11 +47,10 @@ Parameters:
 	athleticsData - a map from season names to lists of athletics team names
 					for that season.  This method creates a new AthleticsTeam 
 					for each listed team.
-	allowedRoles - a list of Parse Role objects that can read these teams
 
 Returns: a promise that creates a new AthleticsTeam object for each team name
 contained within athleticsData.  Each AthleticsTeam can only be read by the
-given Parse Roles (and not written by anyone) and has the following fields:
+any Student (and not written by anyone) and has the following fields:
 
 - teamName
 - practices (list of AthleticsEvent objects)
@@ -61,21 +58,19 @@ given Parse Roles (and not written by anyone) and has the following fields:
 - season (name of season - e.g. "Fall")
 ------------------------------------
 */
-function createNewAthleticsTeams(athleticsData, allowedRoles) {
+function createNewAthleticsTeams(athleticsData) {
 	const AthleticsTeam = Parse.Object.extend("AthleticsTeam");
 	var promises = [];
 	Object.keys(athleticsData).forEach(function(seasonName) {
-		var seasonPromises = athleticsData[seasonName].map(function(teamName) {
+		const seasonPromises = athleticsData[seasonName].map(function(teamName) {
 			const athleticsTeam = new AthleticsTeam();
 			athleticsTeam.set("teamName", teamName);
 			athleticsTeam.set("practices", []);
 			athleticsTeam.set("games", []);
 			athleticsTeam.set("season", seasonName);
 
-			var acl = new Parse.ACL();
-			allowedRoles.forEach(function(allowedRole) {
-				acl.setRoleReadAccess(allowedRole, true);
-			});
+			const acl = new Parse.ACL();
+			acl.setRoleReadAccess("Student", true);
 
 			athleticsTeam.setACL(acl);
 			return athleticsTeam.save();
