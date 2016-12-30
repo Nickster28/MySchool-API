@@ -156,12 +156,9 @@ Deletes all of this edition's NewspaperSection objects.
 ------------------------------------------------
 */
 Parse.Cloud.afterDelete("NewspaperEdition", function(req, res) {
-	if (!req.user) {
-		console.error("NewspaperEdition cleanup must be done by valid user.");
-	} else {
-		return Parse.Object.destroyAll(req.object.get("sections"),
-			{sessionToken: req.user.getSessionToken()});
-	}
+	return Parse.Object.destroyAll(req.object.get("sections"), {
+		useMasterKey: true
+	});
 });
 
 
@@ -171,12 +168,9 @@ Deletes all of this section's NewspaperArticle objects.
 ------------------------------------------------
 */
 Parse.Cloud.afterDelete("NewspaperSection", function(req, res) {
-	if (!req.user) {
-		console.error("NewspaperSection cleanup must be done by valid user.");
-	} else {
-		return Parse.Object.destroyAll(req.object.get("articles"),
-			{sessionToken: req.user.getSessionToken()});
-	}
+	return Parse.Object.destroyAll(req.object.get("articles"), {
+		useMasterKey: true
+	});
 });
 
 

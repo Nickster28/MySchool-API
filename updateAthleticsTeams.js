@@ -52,7 +52,8 @@ Parameters:
 	allowedRoles - a list of Parse Role objects that can read these teams
 
 Returns: a promise that creates a new AthleticsTeam object for each team name
-contained within athleticsData.  Each AthleticsTeam has the following fields:
+contained within athleticsData.  Each AthleticsTeam can only be read by the
+given Parse Roles (and not written by anyone) and has the following fields:
 
 - teamName
 - practices (list of AthleticsEvent objects)
