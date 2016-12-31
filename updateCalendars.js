@@ -3,7 +3,7 @@
 Polls the given calendar server and updates school calendar and athletics
 calendar data in Parse with the result.  Overwrites all school calendar events
 with the new data, and diffs athletics event data to send alerts about event
-changes.
+changes.  Removes athletics events not part of the updated data.
 -------------------------
 */
 
@@ -107,7 +107,6 @@ Requires Master Key usage to access locked down CalendarEvent objects.
 function createNewCalendarEvents(calendarData) {
 	Parse.Cloud.useMasterKey();
 	return Parse.Promise.when(calendarData.map(function(eventData) {
-		// Create a new CalendarEvent Parse object
 		const calendarEvent = new CalendarEvent();
 		calendarEvent.set("eventName", eventData.eventName);
 		calendarEvent.set("startDateTime", new Date(eventData.startDateTime));
@@ -335,8 +334,6 @@ function diffAthleticsEvent(event, eventData, isGame) {
 
 	// If the event TIME changed... (date can't change)
 	if (event.get("startDateTime").toJSON() != eventData.startDateTime) {
-		console.log(event.get("startDateTime").toJSON() + " changed to " +
-			eventData.startDateTime);
 		const newDate = new Date(eventData.startDateTime);
 
 		var newHour = newDate.getHours();
