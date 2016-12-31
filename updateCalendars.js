@@ -211,7 +211,6 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 			var event = existingEventsMap[hashCode];
 
 			// See if an event is new or if it's in the old database
-			const alreadyExists = event ? true : false;
 			if (event) {
 				// Clear this event since we looked at it
 				delete existingEventsMap[hashCode];
@@ -223,30 +222,29 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 						event.id + ") updated");
 					console.log(JSON.stringify(eventData));
 					numChanged += 1;
-				}
+
+					// Mark the event as seen
+					newEvents.add(hashCode);
+
+					return event.save();
+				} else return Parse.Promise.as();
 			} else if (!newEvents.has(hashCode)) {
 				// If it's not in the old database AND not already in our new
 				// data, add it.
 				event = newAthleticsEventFromEventData(eventData, hashCode);
 				numNew += 1;
+
+				// Mark the event as seen
+				newEvents.add(hashCode);
+
+				// Add it to its appropriate team.
+				return event.save().then(function(savedEvent) {
+					return addEventToTeam(eventData.team, savedEvent, areGames);
+				});
 			} else {
 				// Otherwise it's not in the old database, but was added already
 				return Parse.Promise.as();
 			}
-
-			// Mark the event as seen
-			newEvents.add(hashCode);
-
-			var returnedPromise = event.save();
-
-			// Only add it to a team if it's a new event
-			if (!alreadyExists) {
-				returnedPromise = returnedPromise.then(function(savedEvent) {
-					return addEventToTeam(eventData.team, savedEvent, areGames);
-				});
-			}
-
-			return returnedPromise;
 		});
 	});
 
