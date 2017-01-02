@@ -99,14 +99,14 @@ Parameters:
 					objects.
 
 Returns: a promise that saves new CalendarEvent objects for each element in
-the calendarData array.  Saves all objects to the server in parallel.
+the calendarData array.
 
 Requires Master Key usage to access locked down CalendarEvent objects.
 -------------------------------------
 */
 function createNewCalendarEvents(calendarData) {
 	Parse.Cloud.useMasterKey();
-	return Parse.Promise.when(calendarData.map(function(eventData) {
+	const eventsToSave = calendarData.map(function(eventData) {
 		const calendarEvent = new CalendarEvent();
 		calendarEvent.set("eventName", eventData.eventName);
 		calendarEvent.set("startDateTime", new Date(eventData.startDateTime));
@@ -117,8 +117,9 @@ function createNewCalendarEvents(calendarData) {
 			calendarEvent.set("location", eventData.location);
 		}
 
-		return calendarEvent.save();
-	}));
+		return calendarEvent;
+	});
+	return Parse.Object.saveAll(eventsToSave);
 }
 
 
