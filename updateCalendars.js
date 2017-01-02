@@ -165,7 +165,7 @@ function updateAthleticsCalendar(serverURL) {
 			return updateAthleticsEvents(practices, false, remainingEventsMap);
 		});
 	}).then(function(remainingEventsMap) {
-		removeRemainingAthleticsEvents(remainingEventsMap);
+		return removeRemainingAthleticsEvents(remainingEventsMap);
 	});
 }
 
@@ -464,6 +464,7 @@ Requires Master Key usage to access/remove locked down AthleticsEvent objects.
 */
 function removeRemainingAthleticsEvents(remainingEventsMap) {
 	Parse.Cloud.useMasterKey();
+	console.log("Removing events: " + Object.keys(remainingEventsMap).length);
 	const eventsToDelete = Object.keys(remainingEventsMap).map(function(key) {
 		return remainingEventsMap[key];
 	});
