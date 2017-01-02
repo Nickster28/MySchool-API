@@ -62,20 +62,20 @@ any Student (and not written by anyone) and has the following fields:
 */
 function createNewAthleticsTeams(athleticsData) {
 	const AthleticsTeam = Parse.Object.extend("AthleticsTeam");
-	var promises = [];
+	var teams = [];
 	Object.keys(athleticsData).forEach(function(seasonName) {
-		const seasonPromises = athleticsData[seasonName].map(function(teamName) {
+		const seasonTeams = athleticsData[seasonName].map(function(teamName) {
 			const athleticsTeam = new AthleticsTeam();
 			athleticsTeam.set("teamName", teamName);
 			athleticsTeam.set("practices", []);
 			athleticsTeam.set("games", []);
 			athleticsTeam.set("season", seasonName);
-			return athleticsTeam.save();
+			return athleticsTeam;
 		});
-		promises = promises.concat(seasonPromises);
+		teams = teams.concat(seasonTeams);
 	});
 
-	return Parse.Promise.when(promises);
+	return Parse.Object.saveAll(teams);
 }
 
 

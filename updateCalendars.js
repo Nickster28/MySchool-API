@@ -60,6 +60,7 @@ function updateSchoolCalendar(serverURL) {
 		Parse.Cloud.useMasterKey();
 		const oldCalendarQuery = new Parse.Query("CalendarEvent");
 		oldCalendarQuery.limit(1000);
+		console.log("Updating school calendar...");
 		return oldCalendarQuery.find().then(function(oldCalendarEvents) {
 			return Parse.Object.destroyAll(oldCalendarEvents);
 		}).then(function() {
@@ -216,6 +217,9 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 				// Clear this event since we looked at it
 				delete existingEventsMap[hashCode];
 
+				// Mark the event as seen
+				newEvents.add(hashCode);
+
 				// Diff it against the new data and update if needed
 				const changed = diffAthleticsEvent(event, eventData, areGames);
 				if (changed) {
@@ -224,15 +228,13 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 					console.log(JSON.stringify(eventData));
 					numChanged += 1;
 
-					// Mark the event as seen
-					newEvents.add(hashCode);
-
 					return event.save();
 				} else return Parse.Promise.as();
 			} else if (!newEvents.has(hashCode)) {
 				// If it's not in the old database AND not already in our new
 				// data, add it.
 				event = newAthleticsEventFromEventData(eventData, hashCode);
+				console.log("Creating new event " + hashCode);
 				numNew += 1;
 
 				// Mark the event as seen
