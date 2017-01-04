@@ -14,6 +14,7 @@ const request = require("request");
 
 const AthleticsEvent = Parse.Object.extend("AthleticsEvent");
 const CalendarEvent = Parse.Object.extend("CalendarEvent");
+const ParseError = Parse.Object.extend("ParseError");
 
 
 /* FUNCTION: updateCalendars
@@ -37,6 +38,11 @@ function updateCalendars(serverURL) {
 	}, function(error) {
 		console.log("An error occurred: " + JSON.stringify(error));
 		console.log(error.stack);
+
+		var e = new ParseError();
+		e.set("source", "updateCalendars.js");
+		e.set("error", error.stack);
+		e.save(null, {useMasterKey: true});
 	});
 }
 
