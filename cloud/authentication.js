@@ -67,7 +67,7 @@ function sessionTokenForUser(user) {
 	user.setPassword(password);
 
 	// Now log the user in and return a session token
-	return user.save({useMasterKey: true}).then(function(savedUser) {
+	return user.save(null, {useMasterKey: true}).then(function(savedUser) {
 		return Parse.User.logIn(savedUser.get("username"), password);
 	}).then(function(loggedInUser) {
 		return loggedInUser.getSessionToken();
@@ -79,20 +79,18 @@ function sessionTokenForUser(user) {
 ----------------------------------
 Parameters:
 	person - the Parse Person object to get a session token for
-	pictureURL - a URL to a profile picture for this person
 
 Returns: a promise that creates a new Parse User object for the given Person
 and returns a session token for that user (or an error if an error occurs).
 ----------------------------------
 */
-function sessionTokenForPerson(person, pictureURL) {
+function sessionTokenForPerson(person) {
 	const user = new Parse.User();
-	user.set("username", person.get("emailAddress"));
-	user.set("pictureURL", pictureURL);
+	user.setUsername(person.get("emailAddress"));
 
 	const password = randomPassword();
-	user.set("password", password);
-	return user.signUp().then(function(signedUpUser) {
+	user.setPassword(password);
+	return user.signUp(null, {useMasterKey: true}).then(function(signedUpUser) {
 		return Parse.User.logIn(signedUpUser.get("username"), password);
 	}).then(function(loggedInUser) {
 		return loggedInUser.getSessionToken();
@@ -100,11 +98,10 @@ function sessionTokenForPerson(person, pictureURL) {
 }
 
 
-/* FUNCTION: sessionTokenForUserInfo
+/* FUNCTION: sessionTokenForEmail
 ----------------------------------
 Parameters:
-	userInfo - an object containing info about the user of interest, including
-			"email" and "picture" (profile picture URL) fields.
+	email - the email of the user to return a session token for
 
 Returns: a Promise that passes back the session token for the Parse user with
 	this email address, or an error if the user's email is invalid.  It does
@@ -117,13 +114,11 @@ Returns: a Promise that passes back the session token for the Parse user with
 Requires master key use to query user and person objects.
 ----------------------------------
 */
-function sessionTokenForUserInfo(userInfo) {
-	const email = userInfo.email;
-	const pictureURL = userInfo.picture;
+function sessionTokenForEmail(email) {
 
 	// First see if there's already a User for this email
 	const userQuery = new Parse.Query(Parse.User);
-	userQuery.equalTo("email", email);
+	userQuery.equalTo("username", email);
 	return userQuery.first({useMasterKey: true}).then(function(user) {
 		if(user) {
 			return sessionTokenForUser(user);
@@ -134,7 +129,7 @@ function sessionTokenForUserInfo(userInfo) {
 				useMasterKey: true
 			}).then(function(person) {
 				if (person) {
-					return sessionTokenForPerson(person, pictureURL);
+					return sessionTokenForPerson(person);
 				} else {
 					return Parse.Promise.error("We can't seem to find " + email 
 						+ " in the school directory.  Please make sure you're" +
@@ -158,12 +153,7 @@ Parameters:
 
 Returns: a promise that verifies the given Google Sign-in ID token and either
 returns a Promise error if it's invalid (or not a school account) or a success
-Promise containing the email and a profile picture URL:
-
-{
-	email: ...,
-	picture: ...,
-}
+Promise containing the account's email.
 --------------------------
 */
 function verifyIdToken(idToken, clientId, schoolDomain) {
@@ -179,11 +169,7 @@ function verifyIdToken(idToken, clientId, schoolDomain) {
 						"using an @" + schoolDomain + " email address."
 			});
 		} else {
-			const payload = loginInfo.getPayload();
-			promise.resolve({
-				email: payload["email"],
-				picture: payload["picture"]
-			});
+			promise.resolve(loginInfo.getPayload()["email"]);
 		}
 	});
 
@@ -204,8 +190,8 @@ Parse.Cloud.define("sessionTokenForIDToken", function(request, response) {
 		const CLIENT_ID = config.get("GOOGLE_CLIENT_ID");
 		const SCHOOL_DOMAIN = config.get("SCHOOL_DOMAIN");
 		return verifyIdToken(request.params.idToken, CLIENT_ID, SCHOOL_DOMAIN);
-	}).then(function(userInfo) {
-		return sessionTokenForUserInfo(userInfo);
+	}).then(function(email) {
+		return sessionTokenForEmail(email);
 	}).then(function(sessionToken) {
 		response.success(sessionToken);
 	}, function(error) {
