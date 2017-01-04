@@ -26,11 +26,11 @@ back in a promise.  Otherwise, the response is passed back.
 function getURL(url, paramsObject) {
     "use strict";
     return new Promise(function(resolve, reject) {
-        request({url: url, qs: paramsObject}, function(error, response, body) {
-            if(error) {
-            	console.log(error.stack);
+        request({url: url, qs: paramsObject}, function(err, response, body) {
+            if(err) {
+            	console.log(err.stack);
             	const error = new Parse.Error(Parse.Error.OTHER_CAUSE,
-            		JSON.stringify(error));
+            		JSON.stringify(err));
             	reject(error);
             } else resolve(body);
         });
