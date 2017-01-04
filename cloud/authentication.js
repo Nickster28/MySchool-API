@@ -56,17 +56,18 @@ Parameters:
 
 Returns: a promise that regenerates the given user's password in order to log
 them in and return back a session token (or an error if an error occurred).
+
+Requires master key use to save new user password.
 --------------------------------
 */
 function sessionTokenForUser(user) {
-	Parse.Cloud.useMasterKey();
 
 	// Make a new random password for this user to re-log them in
 	const password = randomPassword();
 	user.setPassword(password);
 
 	// Now log the user in and return a session token
-	return user.save().then(function(savedUser) {
+	return user.save({useMasterKey: true}).then(function(savedUser) {
 		return Parse.User.logIn(savedUser.get("username"), password);
 	}).then(function(loggedInUser) {
 		return loggedInUser.getSessionToken();
@@ -85,8 +86,6 @@ and returns a session token for that user (or an error if an error occurs).
 ----------------------------------
 */
 function sessionTokenForPerson(person, pictureURL) {
-	Parse.Cloud.useMasterKey();
-
 	const user = new Parse.User();
 	user.set("username", person.get("emailAddress"));
 	user.set("pictureURL", pictureURL);
@@ -114,24 +113,26 @@ Returns: a Promise that passes back the session token for the Parse user with
 	Person has this email, this means they are a valid user but have not yet
 	signed in; in this case, we make a new Parse User for them.  In all other
 	cases, the email is invalid, so we return an error Promise.
+
+Requires master key use to query user and person objects.
 ----------------------------------
 */
 function sessionTokenForUserInfo(userInfo) {
-	Parse.Cloud.useMasterKey();
-
 	const email = userInfo.email;
 	const pictureURL = userInfo.picture;
 
 	// First see if there's already a User for this email
 	const userQuery = new Parse.Query(Parse.User);
 	userQuery.equalTo("email", email);
-	return userQuery.first().then(function(user) {
+	return userQuery.first({useMasterKey: true}).then(function(user) {
 		if(user) {
 			return sessionTokenForUser(user);
 		} else {
 			const personQuery = new Parse.Query("Person");
 			personQuery.equalTo("emailAddress", email);
-			return personQuery.first().then(function(person) {
+			return personQuery.first({
+				useMasterKey: true
+			}).then(function(person) {
 				if (person) {
 					return sessionTokenForPerson(person, pictureURL);
 				} else {

@@ -57,11 +57,12 @@ function updateSchoolCalendar(serverURL) {
 	return getURL(serverURL + "/schoolCalendar").then(function(responseBody) {
 		return JSON.parse(responseBody);
 	}).then(function(calendarData) {
-		Parse.Cloud.useMasterKey();
 		const oldCalendarQuery = new Parse.Query("CalendarEvent");
 		oldCalendarQuery.limit(1000);
 		console.log("Updating school calendar...");
-		return oldCalendarQuery.find().then(function(oldCalendarEvents) {
+		return oldCalendarQuery.find({
+			useMasterKey: true
+		}).then(function(oldCalendarEvents) {
 			return Parse.Object.destroyAll(oldCalendarEvents);
 		}).then(function() {
 			return createNewCalendarEvents(calendarData);
@@ -102,11 +103,10 @@ Parameters:
 Returns: a promise that saves new CalendarEvent objects for each element in
 the calendarData array.
 
-Requires Master Key usage to access locked down CalendarEvent objects.
+Requires Master Key usage to create locked down CalendarEvent objects.
 -------------------------------------
 */
 function createNewCalendarEvents(calendarData) {
-	Parse.Cloud.useMasterKey();
 	const eventsToSave = calendarData.map(function(eventData) {
 		const calendarEvent = new CalendarEvent();
 		calendarEvent.set("eventName", eventData.eventName);
@@ -120,7 +120,7 @@ function createNewCalendarEvents(calendarData) {
 
 		return calendarEvent;
 	});
-	return Parse.Object.saveAll(eventsToSave);
+	return Parse.Object.saveAll(eventsToSave, {useMasterKey: true});
 }
 
 
@@ -195,7 +195,6 @@ Requires Master Key usage to access locked down AthleticsEvent objects.
 -----------------------------------
 */
 function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
-	Parse.Cloud.useMasterKey();
 	console.log("Updating " + (areGames ? "games..." : "practices..."));
 	var numChanged = 0;
 	var numNew = 0;
@@ -228,7 +227,7 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 					console.log(JSON.stringify(eventData));
 					numChanged += 1;
 
-					return event.save();
+					return event.save(null, {useMasterKey: true});
 				} else return Parse.Promise.as();
 			} else if (!newEvents.has(hashCode)) {
 				// If it's not in the old database AND not already in our new
@@ -241,7 +240,9 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 				newEvents.add(hashCode);
 
 				// Add it to its appropriate team.
-				return event.save().then(function(savedEvent) {
+				return event.save(null, {
+					useMasterKey: true
+				}).then(function(savedEvent) {
 					return addEventToTeam(eventData.team, savedEvent, areGames);
 				});
 			} else {
@@ -275,10 +276,9 @@ Requires Master Key usage to access locked down AthleticsEvent objects.
 ----------------------------------------------------
 */
 function fetchExistingAthleticsEvents() {
-	Parse.Cloud.useMasterKey();
 	const eventQuery = new Parse.Query("AthleticsEvent");
 	eventQuery.limit(1000);
-	return eventQuery.find();
+	return eventQuery.find({useMasterKey: true});
 }
 
 
@@ -438,10 +438,9 @@ Requires Master Key usage to access locked down AthleticsEvent objects.
 ----------------------------
 */
 function addEventToTeam(teamName, event, isGame) {
-	Parse.Cloud.useMasterKey();
 	const teamQuery = new Parse.Query("AthleticsTeam");
 	teamQuery.equalTo("teamName", teamName);
-	return teamQuery.first().then(function(team) {
+	return teamQuery.first({useMasterKey: true}).then(function(team) {
 		if (isGame) {
 			team.set("games", team.get("games").concat([event]));
 		} else {
@@ -463,13 +462,12 @@ Requires Master Key usage to access/remove locked down AthleticsEvent objects.
 -------------------------------------------------
 */
 function removeRemainingAthleticsEvents(remainingEventsMap) {
-	Parse.Cloud.useMasterKey();
 	console.log("Removing events: " + Object.keys(remainingEventsMap).length);
 	const eventsToDelete = Object.keys(remainingEventsMap).map(function(key) {
 		return remainingEventsMap[key];
 	});
 	
-	return Parse.Object.destroyAll(eventsToDelete);
+	return Parse.Object.destroyAll(eventsToDelete, {useMasterKey: true});
 }
 
 

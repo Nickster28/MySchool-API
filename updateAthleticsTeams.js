@@ -26,10 +26,11 @@ function updateAthleticsTeams(serverURL) {
 	return getURL(serverURL + "/athleticsTeams").then(function(responseBody) {
 		return JSON.parse(responseBody);
 	}).then(function(athleticsData) {
-		Parse.Cloud.useMasterKey();
 		const oldTeamsQuery = new Parse.Query("AthleticsTeam");
 		oldTeamsQuery.limit(1000);
-		return oldTeamsQuery.find().then(function(oldTeams) {
+		return oldTeamsQuery.find({
+			useMasterKey: true
+		}).then(function(oldTeams) {
 			return Parse.Object.destroyAll(oldTeams);
 		}).then(function() {
 			return createNewAthleticsTeams(athleticsData);
