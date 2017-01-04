@@ -142,7 +142,7 @@ Promise containing the account's email.
 function verifyIdToken(idToken, clientId, schoolDomain) {
 	const promise = new Parse.Promise();
 	const client = new auth.OAuth2(clientId, '', '');
-	client.verifyIdToken(idToken + 's', clientId, function(err, loginInfo) {
+	client.verifyIdToken(idToken, clientId, function(err, loginInfo) {
 		// If there's an error or we need to limit to a schoolDomain...
 		if (err) {
 			console.log(err.stack);
