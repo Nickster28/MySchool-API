@@ -169,17 +169,16 @@ Promise containing the account's email.
 function verifyIdToken(idToken, clientId, schoolDomain) {
 	const promise = new Parse.Promise();
 	const client = new auth.OAuth2(clientId, '', '');
-	client.verifyIdToken(idToken, clientId, function(error, loginInfo) {
+	client.verifyIdToken(idToken, clientId, function(err, loginInfo) {
 		// If there's an error or we need to limit to a schoolDomain...
-		if (error) {
-			console.log(error.stack);
+		if (err) {
+			console.log(err.stack);
 			const errorCode = Parse.Error.OTHER_CAUSE;
-			const error = Parse.Error(errorCode, JSON.stringify(error));
+			const error = Parse.Error(errorCode, JSON.stringify(err));
 			promise.reject(error);
 		} else if (schoolDomain
 			&& loginInfo.getPayload()["hd"] != schoolDomain) {
 
-			console.log(error.stack);
 			const errorCode = Parse.Error.INVALID_EMAIL_ADDRESS;
 			const error = Parse.Error(errorCode, "Please log in using an " +
 				"@" + schoolDomain + " emailAddress.");
