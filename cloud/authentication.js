@@ -87,6 +87,10 @@ and returns a session token for that user (or an error if an error occurs).
 function sessionTokenForPerson(person) {
 	const user = new Parse.User();
 	user.setUsername(person.get("emailAddress"));
+	user.set("firstName", person.get("firstName"));
+	user.set("lastName", person.get("lastName"));
+	user.set("classes", person.get("classSchedule"));
+	user.set("grade", person.get("grade"));
 
 	const password = randomPassword();
 	user.setPassword(password);
