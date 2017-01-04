@@ -41,9 +41,9 @@ Returns: a randomly-generated length-24 numeric password.
 ---------------------------
 */
 function randomPassword() {
-	const password = new Buffer(24);
-	for (const i = 0; i < 24; i++) {
-		password.set(i, _.random(0, 255));
+	var password = new Buffer(24);
+	for (var i = 0; i < 24; i++) {
+		password[i] = Math.floor(Math.random() * 256);
 	}
 	return password.toString('base64');
 }
