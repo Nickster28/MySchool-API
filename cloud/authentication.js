@@ -11,33 +11,6 @@ const GoogleAuth = require("google-auth-library");
 const auth = new GoogleAuth();
 
 
-/* FUNCTION: getURL
---------------------------
-Parameters:
-    url - the url to GET
-    paramsObject - a dictionary of key/value pairs to include as request params
-
-Returns: a promise containing the GET response from the given url + params
-
-Uses "request" within a promise.  If there's an error, the error will be passed
-back in a promise.  Otherwise, the response is passed back.
---------------------------
-*/
-function getURL(url, paramsObject) {
-    "use strict";
-    return new Promise(function(resolve, reject) {
-        request({url: url, qs: paramsObject}, function(err, response, body) {
-            if(err) {
-            	console.log(err.stack);
-            	const error = new Parse.Error(Parse.Error.OTHER_CAUSE,
-            		JSON.stringify(err));
-            	reject(error);
-            } else resolve(body);
-        });
-    });
-}
-
-
 /* FUNCTION: randomPassword
 ---------------------------
 Parameters: NA
@@ -174,7 +147,7 @@ function verifyIdToken(idToken, clientId, schoolDomain) {
 		if (err) {
 			console.log(err.stack);
 			const errorCode = Parse.Error.OTHER_CAUSE;
-			const error = new Parse.Error(errorCode, JSON.stringify(err));
+			const error = new Parse.Error(errorCode, "Error validating token.");
 			promise.reject(error);
 		} else if (schoolDomain
 			&& loginInfo.getPayload()["hd"] != schoolDomain) {
