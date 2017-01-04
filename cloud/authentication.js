@@ -176,8 +176,8 @@ function verifyIdToken(idToken, clientId, schoolDomain) {
 			const errorCode = Parse.Error.OTHER_CAUSE;
 			const error = Parse.Error(errorCode, JSON.stringify(error));
 			promise.reject(error);
-		} else if (schoolDomain &&
-			loginInfo.getPayload()["hd"] != schoolDomain)) {
+		} else if (schoolDomain
+			&& loginInfo.getPayload()["hd"] != schoolDomain) {
 
 			console.log(error.stack);
 			const errorCode = Parse.Error.INVALID_EMAIL_ADDRESS;
