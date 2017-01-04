@@ -27,8 +27,12 @@ function getURL(url, paramsObject) {
     "use strict";
     return new Promise(function(resolve, reject) {
         request({url: url, qs: paramsObject}, function(error, response, body) {
-            if(error) reject(error);
-            else resolve(body);
+            if(error) {
+            	console.log(error.stack);
+            	const error = new Parse.Error(Parse.Error.OTHER_CAUSE,
+            		JSON.stringify(error));
+            	reject(error);
+            } else resolve(body);
         });
     });
 }
@@ -135,11 +139,13 @@ function sessionTokenForEmail(email) {
 				if (person) {
 					return sessionTokenForPerson(person);
 				} else {
-					return Parse.Promise.error("We can't seem to find " + email 
-						+ " in the school directory.  Please make sure you're" +
-						" logging in with your school email address.  " +
-						" If you think this is a mistake, shoot us an email " +
-						" from the Settings page.");
+					const errorCode = Parse.Error.INVALID_EMAIL_ADDRESS;
+					const error = new Parse.Error(errorCode, "We can't seem" +
+						" to find " + email + " in the school directory. " +
+						" Please make sure you're logging in with your school" +
+						" email address.  If you think this is a mistake," +
+						" shoot us an email from the Settings page.");
+					return Parse.Promise.error(error);
 				}
 			});
 		}
@@ -165,13 +171,19 @@ function verifyIdToken(idToken, clientId, schoolDomain) {
 	const client = new auth.OAuth2(clientId, '', '');
 	client.verifyIdToken(idToken, clientId, function(error, loginInfo) {
 		// If there's an error or we need to limit to a schoolDomain...
-		if (error ||
-			(schoolDomain && loginInfo.getPayload()["hd"] != schoolDomain)) {
-			promise.reject({
-				error: error,
-				message: error ? error.stack : "Please log in " +
-						"using an @" + schoolDomain + " email address."
-			});
+		if (error) {
+			console.log(error.stack);
+			const errorCode = Parse.Error.OTHER_CAUSE;
+			const error = Parse.Error(errorCode, JSON.stringify(error));
+			promise.reject(error);
+		} else if (schoolDomain &&
+			loginInfo.getPayload()["hd"] != schoolDomain)) {
+
+			console.log(error.stack);
+			const errorCode = Parse.Error.INVALID_EMAIL_ADDRESS;
+			const error = Parse.Error(errorCode, "Please log in using an " +
+				"@" + schoolDomain + " emailAddress.");
+			promise.reject(error);
 		} else {
 			promise.resolve(loginInfo.getPayload()["email"]);
 		}
