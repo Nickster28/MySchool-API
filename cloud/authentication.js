@@ -1,41 +1,213 @@
-/* CLOUD FUNCTION: RoleNameForUser
--------------------------------
-Returns true/false whether or not the user making this request is a
-newspaper admin.  There must be a non-null Parse User making this request.
--------------------------------
+/* FILE: authentication.js
+--------------------------
+Handles the Google -> Parse User authentication flow, including translating
+Google Id Tokens to Parse User session tokens and creating Parse User objects
+from Person objects.
+--------------------------
 */
-Parse.Cloud.define("IsNewspaperAdmin", function(req, res) {
-	getRoleNameForUser(req.user).then(function(roleName) {
-		res.success(roleName == "NewspaperAdmin");
-	}, function(error) {
-		res.error(error);
-	});
-});
 
-/* FUNCTION: roleNameForServer
--------------------------------
+const Buffer = require("buffer").Buffer;
+const GoogleAuth = require("google-auth-library");
+const auth = new GoogleAuth();
+
+
+/* FUNCTION: getURL
+--------------------------
 Parameters:
-	user - the Parse user to return the role name for
+    url - the url to GET
+    paramsObject - a dictionary of key/value pairs to include as request params
 
-Returns: a Parse promise passing back the string name of the role the user
-is assigned to, or null if there isn't one.  Note that if the user has
-multiple roles (which they shouldn't, since these roles are mutually exclusive)
-only the name of the first role from the role query will be
-returned.
+Returns: a promise containing the GET response from the given url + params
 
-Returns an error Promise if |user| = null or if an error occurred.
--------------------------------
+Uses "request" within a promise.  If there's an error, the error will be passed
+back in a promise.  Otherwise, the response is passed back.
+--------------------------
 */
-function getRoleNameForUser(user) {
-	if (!user) {
-		return Parse.Promise.error("Can't get role - no user provided.");
-	}
+function getURL(url, paramsObject) {
+    "use strict";
+    return new Promise(function(resolve, reject) {
+        request({url: url, qs: paramsObject}, function(error, response, body) {
+            if(error) reject(error);
+            else resolve(body);
+        });
+    });
+}
 
-	var token = user.getSessionToken();
-	var roleQuery = new Parse.Query(Parse.Role);
-	roleQuery.equalTo("users", user);
-	return roleQuery.first({ sessionToken: token }).then(function(role) {
-		if (role) return role.get("name");
-		else return null;
+
+/* FUNCTION: randomPassword
+---------------------------
+Parameters: NA
+Returns: a randomly-generated length-24 numeric password.
+---------------------------
+*/
+function randomPassword() {
+	const password = new Buffer(24);
+	for (const i = 0; i < 24; i++) {
+		password.set(i, _.random(0, 255));
+	}
+	return password.toString('base64');
+}
+
+
+/* FUNCTION: sessionTokenForUser
+--------------------------------
+Parameters:
+	user - the Parse User object to get a session token for
+
+Returns: a promise that regenerates the given user's password in order to log
+them in and return back a session token (or an error if an error occurred).
+--------------------------------
+*/
+function sessionTokenForUser(user) {
+	Parse.Cloud.useMasterKey();
+
+	// Make a new random password for this user to re-log them in
+	const password = randomPassword();
+	user.setPassword(password);
+
+	// Now log the user in and return a session token
+	return user.save().then(function(savedUser) {
+		return Parse.User.logIn(savedUser.get("username"), password);
+	}).then(function(loggedInUser) {
+		return loggedInUser.getSessionToken();
 	});
 }
+
+
+/* FUNCTION: sessionTokenForPerson
+----------------------------------
+Parameters:
+	person - the Parse Person object to get a session token for
+	pictureURL - a URL to a profile picture for this person
+
+Returns: a promise that creates a new Parse User object for the given Person
+and returns a session token for that user (or an error if an error occurs).
+----------------------------------
+*/
+function sessionTokenForPerson(person, pictureURL) {
+	Parse.Cloud.useMasterKey();
+
+	const user = new Parse.User();
+	user.set("username", person.get("emailAddress"));
+	user.set("pictureURL", pictureURL);
+
+	const password = randomPassword();
+	user.set("password", password);
+	return user.signUp().then(function(signedUpUser) {
+		return Parse.User.logIn(signedUpUser.get("username"), password);
+	}).then(function(loggedInUser) {
+		return loggedInUser.getSessionToken();
+	});
+}
+
+
+/* FUNCTION: sessionTokenForUserInfo
+----------------------------------
+Parameters:
+	userInfo - an object containing info about the user of interest, including
+			"email" and "picture" (profile picture URL) fields.
+
+Returns: a Promise that passes back the session token for the Parse user with
+	this email address, or an error if the user's email is invalid.  It does
+	this by first checking if an existing Parse User has this email; if so, this
+	user has logged in before and we return their session token.  If an existing
+	Person has this email, this means they are a valid user but have not yet
+	signed in; in this case, we make a new Parse User for them.  In all other
+	cases, the email is invalid, so we return an error Promise.
+----------------------------------
+*/
+function sessionTokenForUserInfo(userInfo) {
+	Parse.Cloud.useMasterKey();
+
+	const email = userInfo.email;
+	const pictureURL = userInfo.picture;
+
+	// First see if there's already a User for this email
+	const userQuery = new Parse.Query(Parse.User);
+	useryQuery.equalTo("email", email);
+	return userQuery.first().then(function(user) {
+		if(user) {
+			return sessionTokenForUser(user);
+		} else {
+			const personQuery = new Parse.Query("Person");
+			personQuery.equalTo("emailAddress", email);
+			return personQuery.first().then(function(person) {
+				if (person) {
+					return sessionTokenForPerson(person, pictureURL);
+				} else {
+					return Parse.Promise.error("We can't seem to find " + email 
+						+ " in the school directory.  Please make sure you're" +
+						" logging in with your school email address.  " +
+						" If you think this is a mistake, shoot us an email " +
+						" from the Settings page.");
+				}
+			});
+		}
+	});
+}
+
+
+/* FUNCTION: verifyIdToken
+--------------------------
+Parameters:
+	idToken - the Google Sign-in ID token to verify
+	clientId - the client id of the applicatoin the idToken is for
+	schoolDomain - the domain (e.g. "myschool.org") the email should be in.
+				If null, accepts sign-ins from any domain.
+
+Returns: a promise that verifies the given Google Sign-in ID token and either
+returns a Promise error if it's invalid (or not a school account) or a success
+Promise containing the email and a profile picture URL:
+
+{
+	email: ...,
+	picture: ...,
+}
+--------------------------
+*/
+function verifyIdToken(idToken, clientId, schoolDomain) {
+	const promise = new Parse.Promise();
+	const client = new auth.OAuth2(clientId, '', '');
+	client.verifyIdToken(idToken, clientId, function(error, loginInfo) {
+		// If there's an error or we need to limit to a schoolDomain...
+		if (error ||
+			(schoolDomain && loginInfo.getPayload()["hd"] != schoolDomain)) {
+			promise.reject({
+				error: error,
+				message: error ? error.stack : "Please log in " +
+						"using an @" + schoolDomain + " email address."
+			});
+		} else {
+			const payload = loginInfo.getPayload();
+			promise.resolve({
+				email: payload["email"],
+				picture: payload["picture"]
+			});
+		}
+	});
+
+	return promise;
+}
+
+
+/* Cloud Function: sessionTokenForIDToken
+----------------------------------------------------
+Function that takes a Google ID Token returns a session
+token for that user.  It does this by querying for an existing User
+with the email in the ID Token, or creating a new User if one doesn't exist.
+If ID Token is invalid, or the email can't be found, an error is returned.
+----------------------------------------------------
+*/
+Parse.Cloud.define("sessionTokenForIDToken", function(request, response) {
+	Parse.Config.get().then(function(config) {
+		const CLIENT_ID = config.get("GOOGLE_CLIENT_ID");
+		const SCHOOL_DOMAIN = config.get("SCHOOL_DOMAIN");
+		return verifyIdToken(request.params.idToken, CLIENT_ID, SCHOOL_DOMAIN);
+	}).then(function(userInfo) {
+		return sessionTokenForUserInfo(userInfo);
+	}).then(function(sessionToken) {
+		response.success(sessionToken);
+	}, function(error) {
+		response.error(error);
+	});
+});
