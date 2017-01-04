@@ -124,7 +124,7 @@ function sessionTokenForUserInfo(userInfo) {
 
 	// First see if there's already a User for this email
 	const userQuery = new Parse.Query(Parse.User);
-	useryQuery.equalTo("email", email);
+	userQuery.equalTo("email", email);
 	return userQuery.first().then(function(user) {
 		if(user) {
 			return sessionTokenForUser(user);
