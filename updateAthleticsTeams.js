@@ -31,7 +31,7 @@ function updateAthleticsTeams(serverURL) {
 		return oldTeamsQuery.find({
 			useMasterKey: true
 		}).then(function(oldTeams) {
-			return Parse.Object.destroyAll(oldTeams);
+			return Parse.Object.destroyAll(oldTeams, {useMasterKey: true});
 		}).then(function() {
 			return createNewAthleticsTeams(athleticsData);
 		});
@@ -76,7 +76,7 @@ function createNewAthleticsTeams(athleticsData) {
 		teams = teams.concat(seasonTeams);
 	});
 
-	return Parse.Object.saveAll(teams);
+	return Parse.Object.saveAll(teams, {useMasterKey: true});
 }
 
 

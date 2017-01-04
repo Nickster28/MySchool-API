@@ -63,7 +63,9 @@ function updateSchoolCalendar(serverURL) {
 		return oldCalendarQuery.find({
 			useMasterKey: true
 		}).then(function(oldCalendarEvents) {
-			return Parse.Object.destroyAll(oldCalendarEvents);
+			return Parse.Object.destroyAll(oldCalendarEvents, {
+				useMasterKey: true
+			});
 		}).then(function() {
 			return createNewCalendarEvents(calendarData);
 		});
@@ -446,7 +448,7 @@ function addEventToTeam(teamName, event, isGame) {
 		} else {
 			team.set("practices", team.get("practices").concat([event]));
 		}
-		return team.save();
+		return team.save(null, {useMasterKey: true});
 	});
 }
 
