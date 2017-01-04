@@ -25,9 +25,10 @@ Parameters:
 Returns: a promise that sends requests to the given URL to update our school
 calendar and athletics calendar data on Parse.  For the school calendar, we
 replace all existing data with the updated data.  For the athletics calendar,
-we do a diff on existing events and, if we see an updat, we send a push
-notification to anyone who's subscribed to that team's
-channel on Parse.
+we do a diff on existing events and, if we see an update, we send a push
+notification to anyone who's subscribed to that team's channel on Parse.
+
+For any errors, creates a ParseError object in Parse with the error's info.
 -----------------------------
 */
 function updateCalendars(serverURL) {
@@ -39,9 +40,11 @@ function updateCalendars(serverURL) {
 		console.log("An error occurred: " + JSON.stringify(error));
 		console.log(error.stack);
 
+		// Save the error in the database to address later
 		var e = new ParseError();
 		e.set("source", "updateCalendars.js");
-		e.set("error", error.stack);
+		e.set("stackTrace", error.stack);
+		e.set("error", JSON.stringify(error));
 		e.save(null, {useMasterKey: true});
 	});
 }
