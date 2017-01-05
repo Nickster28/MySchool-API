@@ -148,6 +148,8 @@ function verifyIdToken(idToken, clientId, schoolDomain) {
 	const promise = new Parse.Promise();
 	const client = new auth.OAuth2(clientId, '', '');
 	client.verifyIdToken(idToken, clientId, function(err, loginInfo) {
+		console.log("Verification response: " + JSON.stringify(loginInfo));
+		console.log("Verification error: " + JSON.stringify(err));
 		// If there's an error or we need to limit to a schoolDomain...
 		if (err) {
 			console.log(err.stack);
@@ -184,7 +186,6 @@ Parse.Cloud.define("sessionTokenForIDToken", function(request, response) {
 		const SCHOOL_DOMAIN = config.get("SCHOOL_DOMAIN");
 		return verifyIdToken(request.params.idToken, CLIENT_ID, SCHOOL_DOMAIN);
 	}).then(function(payload) {
-		console.log(JSON.stringify(payload));
 		return sessionTokenForEmail(payload["email"], payload["given_name"],
 			payload["family_name"]);
 	}).then(function(sessionToken) {
