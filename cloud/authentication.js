@@ -116,8 +116,10 @@ function sessionTokenForEmail(email, firstName, lastName) {
 	userQuery.equalTo("username", email);
 	return userQuery.first({useMasterKey: true}).then(function(user) {
 		if(user) {
+			console.log("Queried for users: 1 found");
 			return sessionTokenForUser(user);
 		} else {
+			console.log("Queried for users: making new");
 			const personQuery = new Parse.Query("Person");
 			personQuery.equalTo("emailAddress", email);
 			return personQuery.first({
@@ -147,9 +149,10 @@ Promise containing the account's email.
 function verifyIdToken(idToken, clientId, schoolDomain) {
 	const promise = new Parse.Promise();
 	const client = new auth.OAuth2(clientId, '', '');
+	console.log("Verifying Google ID Token");
 	client.verifyIdToken(idToken, clientId, function(err, loginInfo) {
-		console.log("Verification response: " + JSON.stringify(loginInfo));
-		console.log("Verification error: " + JSON.stringify(err));
+		console.log("Verification response: " + loginInfo);
+		console.log("Verification error: " + err);
 		// If there's an error or we need to limit to a schoolDomain...
 		if (err) {
 			console.log(err.stack);
@@ -181,11 +184,14 @@ If ID Token is invalid, or the email can't be found, an error is returned.
 ----------------------------------------------------
 */
 Parse.Cloud.define("sessionTokenForIDToken", function(request, response) {
+	console.log("Hello world!");
 	Parse.Config.get().then(function(config) {
+		console.log("Got config");
 		const CLIENT_ID = config.get("GOOGLE_CLIENT_ID");
 		const SCHOOL_DOMAIN = config.get("SCHOOL_DOMAIN");
 		return verifyIdToken(request.params.idToken, CLIENT_ID, SCHOOL_DOMAIN);
 	}).then(function(payload) {
+		console.log("Got payload: " + payload);
 		return sessionTokenForEmail(payload["email"], payload["given_name"],
 			payload["family_name"]);
 	}).then(function(sessionToken) {
