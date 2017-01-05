@@ -157,7 +157,7 @@ function verifyIdToken(idToken, clientId, schoolDomain) {
 				"@" + schoolDomain + " emailAddress.");
 			promise.reject(error);
 		} else {
-			promise.resolve(loginInfo.getPayload()["email"]);
+			promise.resolve(loginInfo.getPayload());
 		}
 	});
 
@@ -178,8 +178,9 @@ Parse.Cloud.define("sessionTokenForIDToken", function(request, response) {
 		const CLIENT_ID = config.get("GOOGLE_CLIENT_ID");
 		const SCHOOL_DOMAIN = config.get("SCHOOL_DOMAIN");
 		return verifyIdToken(request.params.idToken, CLIENT_ID, SCHOOL_DOMAIN);
-	}).then(function(email) {
-		return sessionTokenForEmail(email);
+	}).then(function(payload) {
+		console.log(JSON.stringify(payload));
+		return sessionTokenForEmail(payload["email"]);
 	}).then(function(sessionToken) {
 		response.success(sessionToken);
 	}, function(error) {
