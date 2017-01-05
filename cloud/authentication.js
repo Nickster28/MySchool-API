@@ -56,18 +56,32 @@ function sessionTokenForUser(user) {
 ----------------------------------
 Parameters:
 	person - the Parse Person object to get a session token for
+	email - the user's email, used when person is null
+	firstName - the user's first name, used when person is null
+	lastName - the user's last name, used when person is null
 
-Returns: a promise that creates a new Parse User object for the given Person
-and returns a session token for that user (or an error if an error occurs).
+Returns: a promise that creates a new Parse User object, filling in the
+firstName, lastName, classes, and grade fields.  If a person object is provided,
+those 4 fields are filled from the person object.  If no person object is
+provided, the first and last names are set from the provided names, grade is set
+to -1, and classes is set to an empty list.
 ----------------------------------
 */
-function sessionTokenForPerson(person) {
+function sessionTokenForPerson(person, email, firstName, lastName) {
 	const user = new Parse.User();
-	user.setUsername(person.get("emailAddress"));
-	user.set("firstName", person.get("firstName"));
-	user.set("lastName", person.get("lastName"));
-	user.set("classes", person.get("classSchedule"));
-	user.set("grade", person.get("grade"));
+	if (person) {
+		user.setUsername(person.get("emailAddress"));
+		user.set("firstName", person.get("firstName"));
+		user.set("lastName", person.get("lastName"));
+		user.set("classes", person.get("classSchedule"));
+		user.set("grade", person.get("grade"));
+	} else {
+		user.setUsername(email);
+		user.set("firstName", firstName);
+		user.set("lastName", lastName);
+		user.set("classes", []);
+		user.set("grade", -1);
+	}
 
 	const password = randomPassword();
 	user.setPassword(password);
@@ -83,19 +97,19 @@ function sessionTokenForPerson(person) {
 ----------------------------------
 Parameters:
 	email - the email of the user to return a session token for
+	firstName - the first name of the user, used when a new User is created
+	lastName - the last name of the user, used when a new User is created
 
 Returns: a Promise that passes back the session token for the Parse user with
-	this email address, or an error if the user's email is invalid.  It does
-	this by first checking if an existing Parse User has this email; if so, this
-	user has logged in before and we return their session token.  If an existing
-	Person has this email, this means they are a valid user but have not yet
-	signed in; in this case, we make a new Parse User for them.  In all other
-	cases, the email is invalid, so we return an error Promise.
+	this email address.  It does this by first checking if an existing Parse
+	User has this email; if so, this user has logged in before and we return
+	their session token.  Otherwise, we make a new User, using the Person object
+	(if any) for this email.
 
 Requires master key use to query user and person objects.
 ----------------------------------
 */
-function sessionTokenForEmail(email) {
+function sessionTokenForEmail(email, firstName, lastName) {
 
 	// First see if there's already a User for this email
 	const userQuery = new Parse.Query(Parse.User);
@@ -109,17 +123,8 @@ function sessionTokenForEmail(email) {
 			return personQuery.first({
 				useMasterKey: true
 			}).then(function(person) {
-				if (person) {
-					return sessionTokenForPerson(person);
-				} else {
-					const errorCode = Parse.Error.INVALID_EMAIL_ADDRESS;
-					const error = new Parse.Error(errorCode, "We can't seem" +
-						" to find " + email + " in the school directory. " +
-						" Please make sure you're logging in with your school" +
-						" email address.  If you think this is a mistake," +
-						" shoot us an email from the Settings page.");
-					return Parse.Promise.error(error);
-				}
+				return sessionTokenForPerson(person, email, firstName,
+					lastName);
 			});
 		}
 	});
@@ -180,7 +185,8 @@ Parse.Cloud.define("sessionTokenForIDToken", function(request, response) {
 		return verifyIdToken(request.params.idToken, CLIENT_ID, SCHOOL_DOMAIN);
 	}).then(function(payload) {
 		console.log(JSON.stringify(payload));
-		return sessionTokenForEmail(payload["email"]);
+		return sessionTokenForEmail(payload["email"], payload["given_name"],
+			payload["family_name"]);
 	}).then(function(sessionToken) {
 		response.success(sessionToken);
 	}, function(error) {
