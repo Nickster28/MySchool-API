@@ -9,7 +9,9 @@ runLocal.json file with the server info in the following format:
 	},
 	"dashboard": {
 		...
-	}
+	},
+	"googleClientId": "adsfwerqwet",	// example
+	"schoolDomain": "myschool.org"	// example
 }
 
 where "configs" maps to a dictionary of server names to server config objects,
@@ -41,7 +43,8 @@ var serverInfo = JSON.parse(fs.readFileSync("runLocal.json", "utf8"));
 
 Returns: the command line string needed to start parse server.
  		Format: "APP_ID={APP_ID} MASTER_KEY={MASTER_KEY} MONGODB_URI={URI} 
-				CALENDAR_SERVER_URL={URL} DASHBOARD_CONFIG={JSON_STRING}"
+				CALENDAR_SERVER_URL={URL} DASHBOARD_CONFIG={JSON_STRING}
+				GOOGLE_CLIENT_ID={ID} SCHOOL_DOMAIN={DOMAIN}"
 ----------------------------------------
 */
 function argsStringForServerName(serverName) {
@@ -52,7 +55,9 @@ function argsStringForServerName(serverName) {
 		selectedServerInfo.masterKey + '\" MONGODB_URI=\"' +
 		selectedServerInfo.mongoUri + '\" CALENDAR_SERVER_URL=\"' + 
 		selectedServerInfo.calendarServerUrl + '\" DASHBOARD_CONFIG=\'' +
-		JSON.stringify(serverInfo.dashboard) + '\'';
+		JSON.stringify(serverInfo.dashboard) + '\' GOOGLE_CLIENT_ID="' +
+		serverInfo.googleClientId + '\" SCHOOL_DOMAIN=\"' + 
+		serverInfo.schoolDomain + '\"';
 }
 
 

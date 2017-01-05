@@ -13,6 +13,8 @@ The server expects the following environment variables:
 calendar and athletics information.  See
 [Calendar Server](https://github.com/Nickster28/myschool-api/wiki/calendar-server)
 for more information.
+- **GOOGLE_CLIENT_ID** - the Client ID for Google Sign In
+- **SCHOOL_DOMAIN** - the web domain name for the school (e.g. "myschool.org")
 
 The server also accepts additional optional environment variables:
 
@@ -52,7 +54,9 @@ with the server info in the following format:
 	},
 	"dashboard": {
 		// dashboard config
-	}
+	},
+	"googleClientId": "...",	// google sign in client ID
+	"schoolDomain": "myschool.org"	// school domain
 }
 ```
 
