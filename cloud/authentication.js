@@ -63,7 +63,8 @@ Parameters:
 Returns: a promise that creates a new Parse User object, filling in the
 firstName, lastName, classes, and grade fields.  email, and name are filled in
 from the parameters; the remaining fields are filled in from the provided person
-object, or initialized to empty otherwise (empty class list, -1 grade).
+object, or initialized to empty otherwise (empty class list, -1 grade).  Also
+adds the user to the appropriate Role ("Student" / "Teacher").
 ----------------------------------
 */
 function sessionTokenForPerson(person, email, firstName, lastName) {
@@ -85,13 +86,16 @@ function sessionTokenForPerson(person, email, firstName, lastName) {
 	return user.signUp(null, {useMasterKey: true}).then(function(signedUpUser) {
 		return Parse.User.logIn(signedUpUser.get("username"), password);
 	}).then(function(loggedInUser) {
-		const token = loggedInUser.getSessionToken();
+		// Query for the user's role to add them to it
 		const roleQuery = new Parse.Query(Parse.Role);
 		const roleName = user.get("grade") == -1 ? "Teacher" : "Student";
 		roleQuery.equalTo("name", roleName);
-		return roleQuery.first({ sessionToken: token }).then(function(role) {
+		return roleQuery.first({
+			sessionToken: loggedInUser.getSessionToken(),
+			useMasterKey: true
+		}).then(function(role) {
 			role.getUsers().add(loggedInUser);
-			return role.save();
+			return role.save(null, {useMasterKey: true});
 		}).then(function() {
 			return loggedInUser.getSessionToken();
 		});
