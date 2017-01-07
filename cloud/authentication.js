@@ -77,7 +77,7 @@ function sessionTokenForPerson(person, email, firstName, lastName) {
 		user.set("grade", person.get("grade"));
 	} else {
 		user.set("classes", []);
-		user.set("grade", -1);
+		user.set("grade", 0);
 	}
 
 	const password = randomPassword();
@@ -85,7 +85,15 @@ function sessionTokenForPerson(person, email, firstName, lastName) {
 	return user.signUp(null, {useMasterKey: true}).then(function(signedUpUser) {
 		return Parse.User.logIn(signedUpUser.get("username"), password);
 	}).then(function(loggedInUser) {
-		return loggedInUser.getSessionToken();
+		const token = loggedInUser.getSessionToken();
+		const roleQuery = new Parse.Query(Parse.Role);
+		const roleName = user.get("grade") == -1 ? "Teacher" : "Student";
+		roleQuery.equalTo("name", roleName);
+		return roleQuery.first({ sessionToken: token }).then(function(role) {
+			role.getUsers().add(loggedInUser);
+		}).then(function() {
+			return loggedInUser.getSessionToken();
+		});
 	});
 }
 
