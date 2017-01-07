@@ -56,29 +56,26 @@ function sessionTokenForUser(user) {
 ----------------------------------
 Parameters:
 	person - the Parse Person object to get a session token for
-	email - the user's email, used when person is null
-	firstName - the user's first name, used when person is null
-	lastName - the user's last name, used when person is null
+	email - the user's email
+	firstName - the user's first name
+	lastName - the user's last name
 
 Returns: a promise that creates a new Parse User object, filling in the
-firstName, lastName, classes, and grade fields.  If a person object is provided,
-those 4 fields are filled from the person object.  If no person object is
-provided, the first and last names are set from the provided names, grade is set
-to -1, and classes is set to an empty list.
+firstName, lastName, classes, and grade fields.  email, and name are filled in
+from the parameters; the remaining fields are filled in from the provided person
+object, or initialized to empty otherwise (empty class list, -1 grade).
 ----------------------------------
 */
 function sessionTokenForPerson(person, email, firstName, lastName) {
 	const user = new Parse.User();
+	user.setUsername(email);
+	user.set("firstName", firstName);
+	user.set("lastName", lastName);
+
 	if (person) {
-		user.setUsername(person.get("emailAddress"));
-		user.set("firstName", person.get("firstName"));
-		user.set("lastName", person.get("lastName"));
 		user.set("classes", person.get("classSchedule"));
 		user.set("grade", person.get("grade"));
 	} else {
-		user.setUsername(email);
-		user.set("firstName", firstName);
-		user.set("lastName", lastName);
 		user.set("classes", []);
 		user.set("grade", -1);
 	}
