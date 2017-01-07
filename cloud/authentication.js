@@ -91,6 +91,7 @@ function sessionTokenForPerson(person, email, firstName, lastName) {
 		roleQuery.equalTo("name", roleName);
 		return roleQuery.first({ sessionToken: token }).then(function(role) {
 			role.getUsers().add(loggedInUser);
+			return role.save();
 		}).then(function() {
 			return loggedInUser.getSessionToken();
 		});
