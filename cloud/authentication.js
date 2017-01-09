@@ -72,6 +72,7 @@ function sessionTokenForPerson(person, email, firstName, lastName) {
 	user.setUsername(email);
 	user.set("firstName", firstName);
 	user.set("lastName", lastName);
+	user.set("athleticsTeams", []);
 
 	if (person) {
 		user.set("classes", person.get("classSchedule"));
