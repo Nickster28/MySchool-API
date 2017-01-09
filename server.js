@@ -59,7 +59,7 @@ const api = new ParseServer({
                 production: false
             }
         ]
-    }
+    },
     liveQuery: {
         classNames: [] // List of classes to support for query subscriptions
     }
