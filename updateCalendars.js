@@ -231,14 +231,19 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 				newEvents.add(hashCode);
 
 				// Diff it against the new data and update if needed
-				const changed = diffAthleticsEvent(event, eventData, areGames);
-				if (changed) {
+				const notificationPromise =
+					diffAthleticsEvent(event, eventData, areGames);
+				if (notificationPromise) {
 					console.log("Event \"" + event.get("hashCode") + "\" (" +
 						event.id + ") updated");
 					console.log(JSON.stringify(eventData));
 					numChanged += 1;
 
-					return event.save(null, {useMasterKey: true});
+					return event.save(null, {
+						useMasterKey: true
+					}).then(function() {
+						return notificationPromise();
+					});
 				} else return Parse.Promise.as();
 			} else if (!newEvents.has(hashCode)) {
 				// If it's not in the old database AND not already in our new
@@ -325,7 +330,8 @@ Parameters:
 	eventData - the event object to diff against
 	isGame - whether or not the given events are for a game or practice
 
-Returns: whether the event's status or time changed
+Returns: null if there were no changes, or a promise that sends out a
+notification to all relevant users if there were changes.
 
 Checks the eventData against the existing event and, if the status field or the
 event TIME (hours/minutes) have changed, sends out an alert to all users
@@ -335,13 +341,15 @@ event.  UPDATES the status/startDateTime fields in |event| if there is a change.
 -------------------------------
 */
 function diffAthleticsEvent(event, eventData, isGame) {
-	var didChange = false;
+	const hashCode = hashAthleticsEventWithData(eventData, isGame);
+
+	var promise = null;
+
 	// If the event status changed...
 	if (event.get("status") != eventData.status) {
-		sendAlertForTeam(eventData.team, "status", eventData.status, isGame,
-			event.get("startDateTime"));
+		promise = sendAlertForTeam(eventData.team, "status", eventData.status,
+			isGame, event.get("startDateTime"), hashCode);
 		event.set("status", eventData.status);
-		didChange = true;
 	}
 
 	// If the event TIME changed... (date can't change)
@@ -356,13 +364,12 @@ function diffAthleticsEvent(event, eventData, isGame) {
 		const newMinuteString = newMinute < 10 ? "0" + newMinute : newMinute;
 
 		const newTimeString = newHour + ":" + newMinuteString + ampm;
-		sendAlertForTeam(eventData.team, "time", newTimeString, isGame,
-			event.get("startDateTime"));
+		promise = sendAlertForTeam(eventData.team, "time", newTimeString,
+			isGame, event.get("startDateTime"), hashCode);
 		event.set("startDateTime", new Date(eventData.startDateTime));
-		didChange = true;
 	}
 
-	return didChange;
+	return promise;
 }
 
 
@@ -420,18 +427,30 @@ Parameters:
 	newValue - the updated value for this field
 	isGame - whether or not the changed event was a game or practice
 	date - the original date of this event
+	hashCode - the hashCode for this event that changed
 
-Returns: NA
-
-TODO: Sends a notification to all users subscribed to this team that the given
-field in this event changed to the given new value.
+Returns: A promise that sends a notification to all users subscribed to this
+team that the given field in this event changed to the given new value.
+Increments the icon badge, and includes the hash code of the event that changed.
 ------------------------------
 */
-function sendAlertForTeam(team, fieldChanged, newValue, isGame, date) {
+function sendAlertForTeam(team, fieldChanged, newValue, isGame, date,
+	hashCode) {
+
 	const dateString = (date.getMonth() + 1) + "/" + date.getDate();
 	const eventType = isGame ? "game" : "practice";
-	console.log(team + " " + eventType + " on " + dateString + ": "
-		+ fieldChanged + " changed to " + newValue + ".");
+	const message = team + " " + eventType + " on " + dateString + ": "
+		+ fieldChanged + " changed to " + newValue + "."
+	console.log(message);
+
+	return Parse.Push.send({
+	  channels: [team],
+	  data: {
+	    alert: message,
+	    badge: "Increment",
+	    hashCode: hashCode
+	  }
+	});
 }
 
 
