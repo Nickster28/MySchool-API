@@ -25,6 +25,8 @@ Parse Dashboard is mounted at /dashboard.
 - **SERVER_URL** - the URL this server is running from
 (defaults to http://localhost:1337)
 - **PORT** - the port to run from (defaults to 1337)
+- **IOS_PUSH_PASSPHRASE** - the password for the iOS push certificate
+- **IOS_BUNDLE_ID** - the bundle ID of the iOS client
 
 ## Scheduled Scripts
 There are also multiple scheduled scripts that are run at different intervals
@@ -41,6 +43,11 @@ This script, to be run only once per year, (or more often if needed), clears out
 all existing AthleticsTeam data (including corresponding AthleticsEvents) and
 replaces them with new, empty AthleticsTeam objects based on the Calendar Server
 data.
+
+## Push Notifications (iOS) ##
+To configure push notifications for an iOS client, simply replace 
+MySchoolPushCertificate.p12 with your own iOS push certificate, and provide the
+certificate passphrase and app bundle ID as environment variables (see above).
 
 ## Testing and Debugging
 It's also easy to run different server configurations and debugging options

@@ -50,6 +50,16 @@ const api = new ParseServer({
     appId: process.env.APP_ID,
     masterKey: process.env.MASTER_KEY,
     serverURL: serverURL,
+    push: {
+        ios: [
+            {
+                pfx: './MySchoolDevPushCertificate.p12',
+                passphrase: process.env.IOS_PUSH_PASSPHRASE,
+                bundleId: process.env.IOS_BUNDLE_ID,
+                production: false
+            }
+        ]
+    }
     liveQuery: {
         classNames: [] // List of classes to support for query subscriptions
     }
