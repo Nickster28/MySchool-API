@@ -25,6 +25,7 @@ Parse Dashboard is mounted at /dashboard.
 - **SERVER_URL** - the URL this server is running from
 (defaults to http://localhost:1337)
 - **PORT** - the port to run from (defaults to 1337)
+- **IOS_PUSH_CERT** - the name of the iOS push certificate .p12 file (e.g "cert.p12") in the project
 - **IOS_PUSH_PASSPHRASE** - the password for the iOS push certificate
 - **IOS_BUNDLE_ID** - the bundle ID of the iOS client
 

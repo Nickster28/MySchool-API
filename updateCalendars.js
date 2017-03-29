@@ -76,6 +76,7 @@ function updateSchoolCalendar(serverURL) {
 				useMasterKey: true
 			});
 		}).then(function() {
+			console.log("Creating " + calendarData.length + " new events...");
 			return createNewCalendarEvents(calendarData);
 		});
 	});
@@ -159,6 +160,7 @@ function updateAthleticsCalendar(serverURL) {
 		const existingEvents = data[0];
 		const games = data[1].games;
 		const practices = data[1].practices;
+		console.log("Received " + games.length + " games, " + practices.length + " practices");
 
 		// Make a map from hashCodes to AthleticsEvents for existing events
 		// This map is modified and returned by updateAthletisEvents below.
@@ -209,6 +211,7 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 	console.log("Updating " + (areGames ? "games..." : "practices..."));
 	var numChanged = 0;
 	var numNew = 0;
+	var numDuplicates = 0;
 
 	// This set contains the hashCodes of all *new* events we've gone over
 	// Vs. existingEventsMap, which is all *existing* events we haven't yet
@@ -234,22 +237,18 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 				const notificationPromise =
 					diffAthleticsEvent(event, eventData, areGames);
 				if (notificationPromise) {
-					console.log("Event \"" + event.get("hashCode") + "\" (" +
-						event.id + ") updated");
-					console.log(JSON.stringify(eventData));
 					numChanged += 1;
 
 					return event.save(null, {
 						useMasterKey: true
 					}).then(function() {
-						return notificationPromise();
+						return notificationPromise;
 					});
 				} else return Parse.Promise.as();
 			} else if (!newEvents.has(hashCode)) {
 				// If it's not in the old database AND not already in our new
 				// data, add it.
 				event = newAthleticsEventFromEventData(eventData, hashCode);
-				console.log("Creating new event " + hashCode);
 				numNew += 1;
 
 				// Mark the event as seen
@@ -263,6 +262,7 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 				});
 			} else {
 				// Otherwise it's not in the old database, but was added already
+				numDuplicates += 1;
 				return Parse.Promise.as();
 			}
 		});
@@ -273,6 +273,7 @@ function updateAthleticsEvents(eventsData, areGames, existingEventsMap) {
 		console.log("Done updating " + (areGames ? "games" : "practices"));
 		console.log("# Changed: " + numChanged);
 		console.log("# New: " + numNew);
+		console.log("# Duplicates: " + numDuplicates);
 		console.log("Total: " + eventsData.length);
 	}).then(function() {
 		// Return all events in the database we didn't touch
@@ -353,17 +354,20 @@ function diffAthleticsEvent(event, eventData, isGame) {
 	}
 
 	// If the event TIME changed... (date can't change)
-	if (event.get("startDateTime").toJSON() != eventData.startDateTime) {
-		const newDate = new Date(eventData.startDateTime);
+	const newDate = new Date(eventData.startDateTime);
+	const dateDiffMilliseconds = newDate - event.get("startDateTime")
+	if (dateDiffMilliseconds != 0) {
 
-		var newHour = newDate.getHours();
-		const ampm = newHour >= 12 ? "PM" : "AM";
-		newHour = newHour % 12;
-		if (newHour == 0) newHour = 12;
-		const newMinute = newDate.getMinutes();
-		const newMinuteString = newMinute < 10 ? "0" + newMinute : newMinute;
+		// Report how much it changed ("2hr. 20min. earlier")
+		var changeType = dateDiffMilliseconds > 0 ? "later" : "earlier";
+		const secsChanged = Math.floor(Math.abs(dateDiffMilliseconds) / 1000);
+		var minutesChanged = Math.floor(secsChanged / 60);
+		const hoursChanged = Math.floor(minutesChanged / 60);
+		minutesChanged %= 60;
 
-		const newTimeString = newHour + ":" + newMinuteString + ampm;
+		var newTimeString = hoursChanged > 0 ? hoursChanged + " hr. " : "";
+		newTimeString += minutesChanged + " min. " + changeType;
+
 		promise = sendAlertForTeam(eventData.team, "time", newTimeString,
 			isGame, event.get("startDateTime"), hashCode);
 		event.set("startDateTime", new Date(eventData.startDateTime));
@@ -471,12 +475,16 @@ function addEventToTeam(teamName, event, isGame) {
 	const teamQuery = new Parse.Query("AthleticsTeam");
 	teamQuery.equalTo("teamName", teamName);
 	return teamQuery.first({useMasterKey: true}).then(function(team) {
-		if (isGame) {
+		if (team && isGame) {
 			team.set("games", team.get("games").concat([event]));
-		} else {
+			return team.save(null, {useMasterKey: true});
+		} else if (team) {
 			team.set("practices", team.get("practices").concat([event]));
+			return team.save(null, {useMasterKey: true});
+		} else {
+			console.log("Could not find team \"" + teamName + "\"");
+			return Parse.Promise.as();
 		}
-		return team.save(null, {useMasterKey: true});
 	});
 }
 

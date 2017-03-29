@@ -44,22 +44,29 @@ const PARSE_MOUNT_PATH = "/parse";
 var serverURL = process.env.SERVER_URL || "http://localhost:1337";
 serverURL += PARSE_MOUNT_PATH;
 
+// Configure optional iOS push notification support
+var push = {}
+if (process.env.IOS_PUSH_CERT && process.env.IOS_PUSH_PASSPHRASE &&
+    process.env.IOS_BUNDLE_ID) {
+    push = {
+        ios: [
+            {
+                pfx: './' + process.env.IOS_PUSH_CERT,
+                passphrase: process.env.IOS_PUSH_PASSPHRASE,
+                bundleId: process.env.IOS_BUNDLE_ID,
+                production: false
+            }
+        ]
+    }
+}
+
 const api = new ParseServer({
     databaseURI: process.env.MONGODB_URI,
     cloud: __dirname + '/cloud/main.js',
     appId: process.env.APP_ID,
     masterKey: process.env.MASTER_KEY,
     serverURL: serverURL,
-    push: {
-        ios: [
-            {
-                pfx: './MySchoolDevPushCertificate.p12',
-                passphrase: process.env.IOS_PUSH_PASSPHRASE,
-                bundleId: process.env.IOS_BUNDLE_ID,
-                production: false
-            }
-        ]
-    },
+    push: push,
     liveQuery: {
         classNames: [] // List of classes to support for query subscriptions
     }
