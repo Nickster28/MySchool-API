@@ -5,8 +5,9 @@ arguments:
 
 node runLocal.js SERVER_NAME DEBUG_OPTION
 
-- (REQUIRED) SERVER_NAME - must match a key in serverInfo.json, which must map
-to an object containing "appId", "masterKey", and "mongoUri" fields.
+- (REQUIRED) SERVER_NAME - must match a key in runLocal.json's "configs" field,
+which must map to an object containing "appId", "masterKey", and "mongoUri"
+fields.
 - (OPTIONAL) DEBUG_OPTION - either "debugger" or "instant-reload".  "debugger"
 runs using node-debug instead of node, which launches a debugger window.
 "instant-reload" runs using nodemon instead of node, which auto-relaunches the
@@ -19,7 +20,7 @@ right APP_ID, MASTER_KEY and MONGODB_URI environment variables.
 
 var execSync = require('child_process').execSync;
 var fs = require('fs');
-var serverInfo = JSON.parse(fs.readFileSync('serverInfo.json', 'utf8'));
+var serverInfo = JSON.parse(fs.readFileSync('runLocal.json', 'utf8'));
 
 /* FUNCTION: serverArgsStringForServerName
  * ----------------------------------------
@@ -31,7 +32,7 @@ var serverInfo = JSON.parse(fs.readFileSync('serverInfo.json', 'utf8'));
  * ----------------------------------------
  */
 function serverArgsStringForServerName(serverName) {
-	var selectedServerInfo = serverInfo[serverName];
+	var selectedServerInfo = serverInfo["configs"][serverName];
 	if (!selectedServerInfo) return null;
 
 	return 'APP_ID=\"' + selectedServerInfo.appId + '\" MASTER_KEY=\"' +

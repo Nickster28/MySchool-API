@@ -1,11 +1,11 @@
 {
-  "name": "MyMaret-API",
+  "name": "MySchool-API",
   "version": "0.0.1",
-  "description": "API for the MyMaret app",
-  "main": "index.js",
+  "description": "API for MySchool",
+  "main": "server.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Nickster28/MyMaret-API"
+    "url": "https://github.com/Nickster28/MySchool-API"
   },
   "dependencies": {
     "express": "~4.11.x",
@@ -22,7 +22,7 @@
     "test:staging": "node runLocal.js staging instant-reload"
   },
   "engines": {
-    "node": ">=4.3"
+    "node": "6.11.1"
   },
   "devDependencies": {
     "node-inspector": "^0.12.8",

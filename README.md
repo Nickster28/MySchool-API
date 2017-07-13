@@ -13,24 +13,26 @@ API for the MyMaret app.  To start, run `npm install` to install all necessary p
 - **(OPTIONAL) PORT** - the port to run from (defaults to 1337)
 
 ## Testing and Debugging
-Optionally, you can run additional API server configurations with different debugging options.  These configurations are all run using the runLocal.js script, which requires a `serverInfo.json` file to be in the same directory, with the following structure:
+Optionally, you can run additional API server configurations with different debugging options.  These configurations are all run using the runLocal.js script, which requires a `runLocal.json` file to be in the same directory, with the following structure:
 
 ```json
 {
-	"staging": {
-		"appId": "YOUR_STAGING_APP_ID_HERE",
-		"masterKey": "YOUR_STAGING_MASTER_KEY_HERE",
-		"mongoUri": "YOUR_STAGING_MONGODB_URL_HERE"
-	},
-	"prod": {
-		"appId": "YOUR_PRODUCTION_APP_ID_HERE",
-		"masterKey": "YOUR_PRODUCTION_MASTER_KEY_HERE",
-		"mongoUri": "YOUR_PRODUCTION_MONGODB_URL_HERE"
+	"configs": {
+		"staging": {
+			"appId": "YOUR_STAGING_APP_ID_HERE",
+			"masterKey": "YOUR_STAGING_MASTER_KEY_HERE",
+			"mongoUri": "YOUR_STAGING_MONGODB_URL_HERE"
+		},
+		"prod": {
+			"appId": "YOUR_PRODUCTION_APP_ID_HERE",
+			"masterKey": "YOUR_PRODUCTION_MASTER_KEY_HERE",
+			"mongoUri": "YOUR_PRODUCTION_MONGODB_URL_HERE"
+		}
 	}
 }
 ```
 
-runLocal.js takes care of all of the required environment variables for you using `serverInfo.json`.  It also allows you to run a MyMaret-API instance locally, using different debug options, while connecting to the same remote database that the hosted staging and prod instances connect to.  There are premade npm scripts that allow you to run these various configurations:
+runLocal.js takes care of all of the required environment variables for you using `runLocal.json`.  It also allows you to run a MyMaret-API instance locally, using different debug options, while connecting to the same remote database that the hosted staging and prod instances connect to.  There are premade npm scripts that allow you to run these various configurations:
 - `npm run start:prod` - runs locally with the prod APP_ID and MASTER_KEY, and connects to the hosted prod database
 - `npm run start:staging` - runs locally with the staging APP_ID and MASTER_KEY, and connects to the hosted staging database
 - `npm run debug:prod` - same as `npm run start:prod`, but runs with `node-debug` instead of `node` to launch a debugger
@@ -43,8 +45,13 @@ If you're interested in the JS code that underlies the above npm scripts, the `r
 
 `node runLocal.js SERVER_NAME DEBUG_OPTION`
 
-- **(REQUIRED) SERVER_NAME** - must match a key in `serverInfo.json`, which must map to an object containing "appId", "masterKey", and "mongoUri" fields (see `serverInfo.json` format above).
-- **(OPTIONAL) DEBUG_OPTION** - either "debugger" or "instant-reload".  "debugger" runs using `node-debug` instead of `node`, which launches a debugger window.  "instant-reload" runs using `nodemon` instead of `node`, which auto-relaunches the server whenever a file changes.
+- (REQUIRED) SERVER_NAME - must match a key in runLocal.json's "configs" field,
+which must map to an object containing "appId", "masterKey", and "mongoUri"
+fields.
+- (OPTIONAL) DEBUG_OPTION - either "debugger" or "instant-reload".  "debugger"
+runs using node-debug instead of node, which launches a debugger window.
+"instant-reload" runs using nodemon instead of node, which auto-relaunches the
+server whenever a file changes.
 
 ## Additional Tidbits
 There is a `commitAndPushAll.sh` script included, which if run, will commit and push the entered file changes to both staging and master.  It will ask for a commit message on launch.  Note that you will need to add any untracked files before running this script.
