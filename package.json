@@ -2,7 +2,7 @@
   "name": "MySchool-API",
   "version": "0.0.1",
   "description": "API for the MySchool app scaffold",
-  "main": "index.js",
+  "main": "server.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/Nickster28/MySchool-API"
@@ -28,7 +28,7 @@
     "update-athletics-teams:test": "node runLocal.js updateAthleticsTeams.js prod"
   },
   "engines": {
-    "node": ">=4.3"
+    "node": "6.11.1"
   },
   "devDependencies": {
     "node-inspector": "^0.12.8",
